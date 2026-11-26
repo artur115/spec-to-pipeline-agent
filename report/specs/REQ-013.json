@@ -1,0 +1,143 @@
+{
+  "spec": {
+    "summary": "Embedded videos on trail guides are a new action, so this spec adds two new events. No catalog event covers video. guide_scrolled measures page scroll depth and feeds trail_guide_engagement, so it is left untouched. Video progress should not be folded into it. guide_video_played fires on the first play of a video in a page view. guide_video_progressed fires once for each 25/50/75/100 milestone, reusing the same percent enum pattern as guide_scrolled. Both events carry guide_id so they join to guide_viewed, and video_id so guides with several videos can be told apart.",
+    "clarifying_questions": [
+      "Which player will the videos use (YouTube, Vimeo, or self-hosted)? This decides how engineering hooks into play and progress events, and whether a privacy-enhanced embed is needed.",
+      "Will any videos autoplay, even muted? The spec assumes plays are user-initiated only and that autoplay starts do not fire guide_video_played. Please confirm, or ask for an autoplay flag if autoplay is planned.",
+      "If a viewer seeks past a milestone (for example, jumps straight to 80%), should the skipped 25/50/75 milestones count? The spec counts milestones by playhead position reached, including by seeking. Say so if you would rather count only continuously watched time."
+    ],
+    "events": [
+      {
+        "name": "guide_video_played",
+        "action": "new",
+        "trigger": "Fires when the user starts playback of an embedded video on a trail guide page (/guides/*), on the player's first 'play' event for that video in the current page view. Do not fire on resume after pause, on replays after the video ends, or on autoplay starts. Fire once per video per page view.",
+        "description": "A user started watching an embedded video in a trail guide.",
+        "properties": [
+          {
+            "name": "guide_id",
+            "type": "string",
+            "required": true,
+            "description": "Trail guide id. Same value as guide_viewed.guide_id.",
+            "allowed_values": []
+          },
+          {
+            "name": "video_id",
+            "type": "string",
+            "required": true,
+            "description": "Stable internal or provider video id (for example, the YouTube/Vimeo video id). Not the full URL and not the title.",
+            "allowed_values": []
+          },
+          {
+            "name": "video_position",
+            "type": "integer",
+            "required": false,
+            "description": "1-based order of this video among the videos embedded in the guide, top to bottom.",
+            "allowed_values": []
+          },
+          {
+            "name": "video_duration_seconds",
+            "type": "integer",
+            "required": false,
+            "description": "Total video length in whole seconds, as reported by the player at play time.",
+            "allowed_values": []
+          }
+        ]
+      },
+      {
+        "name": "guide_video_progressed",
+        "action": "new",
+        "trigger": "Fires when the playhead of an embedded trail guide video first reaches 25%, 50%, 75% and 100% of its duration in the current page view. Each milestone fires at most once per video per page view. Fire 100 on the player's 'ended' event, or at 99% or more for players that stop short. If the user seeks past several milestones, fire each skipped milestone once, in ascending order (pending PM confirmation). Never fire without a preceding guide_video_played for the same video in the page view.",
+        "description": "A user reached a watch-depth milestone in an embedded trail guide video.",
+        "properties": [
+          {
+            "name": "guide_id",
+            "type": "string",
+            "required": true,
+            "description": "Trail guide id. Same value as guide_viewed.guide_id.",
+            "allowed_values": []
+          },
+          {
+            "name": "video_id",
+            "type": "string",
+            "required": true,
+            "description": "Same video_id as sent on guide_video_played.",
+            "allowed_values": []
+          },
+          {
+            "name": "percent",
+            "type": "integer",
+            "required": true,
+            "description": "Watch-depth milestone reached, as a percent of video duration.",
+            "allowed_values": [
+              "25",
+              "50",
+              "75",
+              "100"
+            ]
+          },
+          {
+            "name": "video_duration_seconds",
+            "type": "integer",
+            "required": false,
+            "description": "Total video length in whole seconds.",
+            "allowed_values": []
+          }
+        ]
+      }
+    ],
+    "kpi_links": [
+      {
+        "kpi": "trail_guide_engagement",
+        "reason": "No expected change. This spec deliberately does not touch guide_viewed or guide_scrolled, so the KPI definition and inputs stay the same. It is flagged because it is the content team's guide KPI and the obvious shortcut, reusing guide_scrolled.percent for video progress, would inflate it. Separately, embedding videos may change page length and therefore scroll depth. That is a product effect, not a tracking one, but content should expect a possible shift when videos launch."
+      }
+    ],
+    "privacy_notes": "Neither event carries personal data. Send only guide_id, video_id, position, duration and percent. Do not send the video title, the full embed URL or query strings (they can contain tokens or tracking params), or any user or account identifiers exposed by the player API. If YouTube is used, embed in privacy-enhanced mode (youtube-nocookie.com). If Vimeo is used, set dnt=1, so the third-party player does not set tracking cookies before consent. Respect the site's existing consent state before loading the player and before firing these events."
+  },
+  "errors": [],
+  "warnings": [],
+  "kpis_from_config": {},
+  "proof": {
+    "guide_video_played": {
+      "valid_samples": 6,
+      "broken_samples": 2,
+      "schema_accepts_valid": true,
+      "schema_catches_broken": 2,
+      "tests_pass_valid": true,
+      "tests_catch_broken": 2,
+      "ok": true
+    },
+    "guide_video_progressed": {
+      "valid_samples": 6,
+      "broken_samples": 4,
+      "schema_accepts_valid": true,
+      "schema_catches_broken": 4,
+      "tests_pass_valid": true,
+      "tests_catch_broken": 4,
+      "ok": true
+    }
+  },
+  "score": {
+    "request_id": "REQ-013",
+    "must_ask": false,
+    "asked": false,
+    "ask_ok": true,
+    "kpi_required": [
+      "trail_guide_engagement"
+    ],
+    "kpi_agent": [
+      "trail_guide_engagement"
+    ],
+    "kpi_checker_added": [],
+    "kpi_recall_agent": 1.0,
+    "kpi_recall_with_checker": 1.0,
+    "kpi_precision": 1.0,
+    "touch_ok": true,
+    "no_duplicate_ok": true,
+    "properties_ok": true,
+    "privacy_ok": true,
+    "checks_ok": true,
+    "pipeline_ok": true,
+    "ready": true,
+    "notes": []
+  }
+}

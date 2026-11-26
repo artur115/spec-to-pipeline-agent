@@ -1,0 +1,126 @@
+{
+  "spec": {
+    "summary": "Track opens of the new size guide modal on footwear and apparel product pages, and make fit returns measurable so the hypothesis can be tested. guide_viewed is not reused: it means trail guide views, and reusing it would distort trail_guide_engagement. Add a new event, size_guide_opened, keyed on product_id. The analysis path is size_guide_opened, then product_added_to_cart, then order_completed, then return_requested, joined on product_id and user/session. return_requested has no reason today, so fit returns cannot be told apart from other returns. This spec adds an optional return_reason to return_requested. If the PM or ops-analytics already gets return reasons from another source (for example the OMS or returns platform), drop that extend. Implementation requirements: (1) Fire size_guide_opened once per modal open, not on re-render or tab switches inside the modal. (2) Opening the modal must not fire page_viewed or product_viewed, even if it changes the URL, hash or route.",
+    "clarifying_questions": [
+      "Does the returns flow (or the returns/OMS system) already collect a return reason? If it does, which options does the customer choose from? The return_reason values should match those options exactly. If the data already exists outside the event stream, we can drop the return_requested extend.",
+      "Where can the modal be opened from (for example a link next to the size selector, a prompt after a size error, or elsewhere)? Do you want to compare these entry points? If so, we'll add an optional entry_point property with fixed values.",
+      "Does the size guide include a fit finder or calculator (foot length, height, etc.)? If it does, do you want to track that a recommendation was made? We would record only a completion flag and never the measurements."
+    ],
+    "events": [
+      {
+        "name": "size_guide_opened",
+        "action": "new",
+        "trigger": "Fires on the client when the size guide modal finishes opening on a product detail page (/p/*). Fires once per open. Does not fire on re-renders, on tab or unit switches inside the modal, or on close.",
+        "description": "A user opened the size guide modal on a footwear or apparel product page. This is used to compare add-to-cart and fit-return rates between users who opened the guide and users who didn't.",
+        "properties": [
+          {
+            "name": "product_id",
+            "type": "string",
+            "required": true,
+            "description": "SKU of the product whose page the modal was opened on. Uses the same format as product_viewed.product_id.",
+            "allowed_values": []
+          },
+          {
+            "name": "category",
+            "type": "string",
+            "required": true,
+            "description": "Size guide category shown in the modal.",
+            "allowed_values": [
+              "footwear",
+              "apparel"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "return_requested",
+        "action": "extend",
+        "trigger": "Unchanged: fires when a return is requested for an order line.",
+        "description": "Adds an optional structured return reason so fit-related returns can be separated from other returns. Optional because older app versions won't send it. The event's existing firing logic and properties must not change.",
+        "properties": [
+          {
+            "name": "return_reason",
+            "type": "string",
+            "required": false,
+            "description": "Reason the customer chose from the fixed list in the returns flow. Send only the selected option code. Never send free-text comments. Pending PM confirmation that these values match the returns form.",
+            "allowed_values": [
+              "too_small",
+              "too_large",
+              "fit_other",
+              "not_as_described",
+              "damaged_or_defective",
+              "changed_mind",
+              "other"
+            ]
+          }
+        ]
+      }
+    ],
+    "kpi_links": [
+      {
+        "kpi": "return_rate",
+        "reason": "This spec changes return_requested, which is one of this KPI's two events. The new property is optional and the firing logic must not change, so the KPI's numbers should not move. ops-analytics should confirm the change and do QA on return counts after release. The size guide is also expected to lower return_rate. That is a product effect, not a tracking change."
+      },
+      {
+        "kpi": "add_to_cart_rate",
+        "reason": "The modal lives on /p/* pages. If it is built as a route or URL change that fires product_viewed again, it would inflate the denominator. The spec says the modal must not fire product_viewed. The size guide may also really affect add-to-cart, which is a product effect."
+      },
+      {
+        "kpi": "newsletter_signup_rate",
+        "reason": "page_viewed is part of this KPI's inputs. If opening the modal fired page_viewed through a URL or hash change, page and session counts could move. The spec says the modal must not fire page_viewed."
+      }
+    ],
+    "privacy_notes": "size_guide_opened carries only product_id and category. Do not capture any personal data (name, email, phone, address). If the modal has a fit calculator, do not send body measurements (foot length, height, weight, chest, etc.) or the computed size tied to the user. Those inputs stay on the client. For return_reason, send only the enum code the customer selected. Never send free-text return comments, because customers often put names, addresses or contact details there."
+  },
+  "errors": [],
+  "warnings": [],
+  "kpis_from_config": {
+    "return_rate": "built on return_requested, which this spec extends"
+  },
+  "proof": {
+    "size_guide_opened": {
+      "valid_samples": 6,
+      "broken_samples": 3,
+      "schema_accepts_valid": true,
+      "schema_catches_broken": 3,
+      "tests_pass_valid": true,
+      "tests_catch_broken": 3,
+      "ok": true
+    },
+    "return_requested": {
+      "valid_samples": 6,
+      "broken_samples": 3,
+      "schema_accepts_valid": true,
+      "schema_catches_broken": 3,
+      "tests_pass_valid": true,
+      "tests_catch_broken": 3,
+      "ok": true
+    }
+  },
+  "score": {
+    "request_id": "REQ-012",
+    "must_ask": false,
+    "asked": false,
+    "ask_ok": true,
+    "kpi_required": [
+      "return_rate"
+    ],
+    "kpi_agent": [
+      "add_to_cart_rate",
+      "newsletter_signup_rate",
+      "return_rate"
+    ],
+    "kpi_checker_added": [],
+    "kpi_recall_agent": 1.0,
+    "kpi_recall_with_checker": 1.0,
+    "kpi_precision": 0.6666666666666666,
+    "touch_ok": true,
+    "no_duplicate_ok": true,
+    "properties_ok": true,
+    "privacy_ok": true,
+    "checks_ok": true,
+    "pipeline_ok": true,
+    "ready": true,
+    "notes": []
+  }
+}

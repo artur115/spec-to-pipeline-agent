@@ -1,0 +1,104 @@
+{
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "usage": {
+    "input_tokens": 2302,
+    "output_tokens": 3249,
+    "cache_read_input_tokens": 1271,
+    "cache_creation_input_tokens": 0
+  },
+  "output": {
+    "summary": "Track the new Buy now button on product pages (PDP) and attribute checkouts and orders to it, so the Buy now path can be compared with the cart path. There are three changes. (1) A new buy_now_clicked event fires on the PDP. It is deliberately not a new source value on product_added_to_cart, because Buy now skips the cart and counting it as an add would inflate add_to_cart_rate. (2) checkout_started is extended with an optional checkout_source property. (3) order_completed is extended with the same optional checkout_source property. With these, the funnel product_viewed \u2192 buy_now_clicked \u2192 checkout_started(buy_now) \u2192 order_completed(buy_now) can be compared with product_viewed \u2192 product_added_to_cart \u2192 checkout_started(cart) \u2192 order_completed(cart). Target ship date is Dec 9.",
+    "clarifying_questions": [
+      "Does Buy now create a cart (even a temporary single-item one) with a cart_id? checkout_started requires cart_id, so if there is no cart we need to agree on what ID to send. Otherwise Buy now checkouts can't be logged and checkout_conversion would be skewed.",
+      "What does 'helps' mean for this launch? For example: more orders per product view, higher checkout_conversion, or faster time to purchase. Will it launch as an A/B test or to everyone? If it's a test, we should add the experiment/variant assignment so exposure can be measured.",
+      "Is Buy now on web only (/p/*) or also in the iOS/Android apps? Does the Buy now checkout offer store pickup, or ship only?"
+    ],
+    "events": [
+      {
+        "name": "buy_now_clicked",
+        "action": "new",
+        "trigger": "Fires when a user taps/clicks the Buy now button on a product page and the click is accepted, i.e. required options such as size are selected and navigation to checkout begins. Fires once per accepted click. It does not fire when the click is blocked by validation.",
+        "description": "User chose to purchase a product directly from the PDP, bypassing the cart.",
+        "properties": [
+          {
+            "name": "product_id",
+            "type": "string",
+            "required": true,
+            "description": "SKU of the product being bought (same format as product_viewed.product_id).",
+            "allowed_values": []
+          },
+          {
+            "name": "quantity",
+            "type": "integer",
+            "required": true,
+            "description": "Units selected at the time of the click (1 if the PDP has no quantity selector).",
+            "allowed_values": []
+          },
+          {
+            "name": "price",
+            "type": "number",
+            "required": false,
+            "description": "Unit list price shown on the PDP at click time, USD.",
+            "allowed_values": []
+          }
+        ]
+      },
+      {
+        "name": "checkout_started",
+        "action": "extend",
+        "trigger": "Unchanged: fires when checkout begins. It now also fires when checkout is reached via Buy now, with checkout_source = buy_now.",
+        "description": "Add the checkout entry path so Buy now checkouts can be separated from cart checkouts. A missing value (older clients) should be treated as cart. Existing properties and types are unchanged.",
+        "properties": [
+          {
+            "name": "checkout_source",
+            "type": "string",
+            "required": false,
+            "description": "How the user entered checkout: 'cart' via the cart page, 'buy_now' via the PDP Buy now button.",
+            "allowed_values": [
+              "cart",
+              "buy_now"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "order_completed",
+        "action": "extend",
+        "trigger": "Unchanged: fires when an order is successfully placed.",
+        "description": "Carry the checkout entry path through to the order so revenue and orders can be attributed to Buy now. Use the same value sent on checkout_started for that checkout. A missing value (older clients) should be treated as cart. Existing required properties are unchanged.",
+        "properties": [
+          {
+            "name": "checkout_source",
+            "type": "string",
+            "required": false,
+            "description": "Entry path of the checkout that produced this order: 'cart' or 'buy_now'.",
+            "allowed_values": [
+              "cart",
+              "buy_now"
+            ]
+          }
+        ]
+      }
+    ],
+    "kpi_links": [
+      {
+        "kpi": "add_to_cart_rate",
+        "reason": "Buy now is a cart-skipping path on /p/*. Users who would have added to cart may use Buy now instead, so add_to_cart_rate can drop even if purchases rise. Buy now is intentionally not logged as product_added_to_cart, so growth should confirm they want it excluded from this KPI. They may also want a companion 'PDP purchase intent' metric that adds buy_now_clicked."
+      },
+      {
+        "kpi": "checkout_conversion",
+        "reason": "Buy now adds a new stream of checkout_started and order_completed events with a different (likely higher-intent) conversion profile, which shifts the daily blended rate. If Buy now checkouts fail to fire checkout_started (e.g. no cart_id), orders would rise without matching starts and the KPI would be inflated. The new checkout_source property lets finance-analytics split the rate by path."
+      },
+      {
+        "kpi": "store_pickup_adoption",
+        "reason": "If the Buy now checkout defaults to or only offers shipping, the extra Buy now orders would lower the pickup share of order_completed."
+      },
+      {
+        "kpi": "return_rate",
+        "reason": "Buy now may change order volume (the denominator) and could bring more impulse purchases that are returned more often, so return_rate may move over the 60-day window. checkout_source on order_completed allows the rate to be split by path."
+      }
+    ],
+    "privacy_notes": "No personal data is needed. Buy now often prefills saved address/payment or uses express wallets (Apple Pay/Google Pay). Do not attach email, name, phone, shipping/billing address or any payment details to buy_now_clicked, checkout_started or order_completed. Identify users only through the existing anonymous/user ID handled by the analytics SDK. If the Buy now redirect URL carries query parameters (e.g. prefilled contact info or tokens), make sure they are not captured in page_viewed.page_path or referrer; strip query strings or allowlist parameters."
+  }
+}

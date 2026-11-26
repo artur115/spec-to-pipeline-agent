@@ -1,0 +1,37 @@
+{
+  "spec": {
+    "summary": "REQ-018 asks to 'track everything' on the new homepage launching Monday. That isn't specific enough to spec: it names no user action and no question the data should answer, so this returns no events. Homepage visits are already captured by the existing page_viewed event (page_path = \"/\"), so baseline homepage traffic will be measurable at launch with no changes. Interaction tracking (module clicks, homepage add-to-cart, homepage newsletter signup) can be specced quickly once the PM answers the questions below. Likely outcomes are listed so the PM can see what's involved. Homepage add-to-cart would extend product_added_to_cart.source with a 'homepage' value, which affects add_to_cart_rate. A homepage newsletter form would extend newsletter_signed_up.signup_location with a 'homepage' value, which affects newsletter_signup_rate. Clicks on hero, tiles or carousels would likely need one new event, such as homepage_module_clicked.",
+    "clarifying_questions": [
+      "What decision should this data support after launch? For example: is the new homepage sending more people to products, to trail guides, or to newsletter signup than the old one? Is there a target metric or a before/after comparison you want?",
+      "Which interactive modules does the new homepage have (hero banner, category tiles, product carousels or recommendations, trail guide promos, search bar, newsletter form)? Which of them do you need click-through data for? A design link or module list would let us spec this in one pass.",
+      "Can users add to cart or sign up for the newsletter directly on the homepage, without going to a product page or the footer? If so, we'd add a 'homepage' value to product_added_to_cart.source and newsletter_signed_up.signup_location. That changes how growth's add_to_cart_rate and newsletter_signup_rate are counted, so growth would need to sign off."
+    ],
+    "events": [],
+    "kpi_links": [],
+    "privacy_notes": "No events are specced yet, so nothing new is collected. For any follow-up spec: module click events should carry only module identifiers, position and content or product IDs, never free text or user details. If the homepage gets a newsletter form, send only signup_location on newsletter_signed_up, never the email address; the address belongs in the ESP, not analytics. If the homepage search bar is tracked through search_performed, note that the query field can contain personal data users type in; trim or screen it as is done for existing search tracking. page_viewed.referrer should have query strings stripped so tokens or emails in campaign URLs aren't captured."
+  },
+  "errors": [],
+  "warnings": [],
+  "kpis_from_config": {},
+  "proof": {},
+  "score": {
+    "request_id": "REQ-018",
+    "must_ask": true,
+    "asked": true,
+    "ask_ok": true,
+    "kpi_required": [],
+    "kpi_agent": [],
+    "kpi_checker_added": [],
+    "kpi_recall_agent": null,
+    "kpi_recall_with_checker": null,
+    "kpi_precision": null,
+    "touch_ok": true,
+    "no_duplicate_ok": true,
+    "properties_ok": true,
+    "privacy_ok": true,
+    "checks_ok": true,
+    "pipeline_ok": true,
+    "ready": true,
+    "notes": []
+  }
+}

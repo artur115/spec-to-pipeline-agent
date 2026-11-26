@@ -1,0 +1,34 @@
+{
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "usage": {
+    "input_tokens": 2268,
+    "output_tokens": 1366,
+    "cache_read_input_tokens": 1271,
+    "cache_creation_input_tokens": 0
+  },
+  "output": {
+    "summary": "BOPIS orders are already tracked. order_completed fires for every order and carries fulfillment_method, which is required and allows 'pickup'. Filtering order_completed to fulfillment_method = 'pickup' gives you BOPIS orders, and the existing store_pickup_adoption KPI (owner: retail-ops) already reports their share of all orders. No new event or property is needed for the request as written. If stores need a per-store view or want to know when the customer actually collected the order, that is a separate change; see the clarifying questions.",
+    "clarifying_questions": [
+      "Do stores need BOPIS orders broken down by pickup store? If so, we would extend order_completed with an optional internal store id, such as pickup_store_id, and we need the list of valid store codes.",
+      "Do stores only need orders placed for pickup (already tracked), or also later steps like 'ready for pickup' and 'picked up by customer'? Those happen in store or order-management systems, not on the site, and would need new server-side events.",
+      "Is the existing store_pickup_adoption KPI (share of orders with fulfillment_method = pickup) what stores are asking for, or do they want a different metric, such as BOPIS order count or BOPIS revenue?"
+    ],
+    "events": [
+      {
+        "name": "order_completed",
+        "action": "reuse",
+        "trigger": "Fires when an order is successfully placed, on the order confirmation step after checkout. This is the existing implementation; BOPIS orders are the ones where fulfillment_method = 'pickup'.",
+        "description": "Existing event. It already covers BOPIS through the required fulfillment_method property (ship | pickup). Analysts can count BOPIS orders and revenue by filtering on fulfillment_method = 'pickup'. No schema change.",
+        "properties": []
+      }
+    ],
+    "kpi_links": [
+      {
+        "kpi": "store_pickup_adoption",
+        "reason": "This KPI already answers the request: it measures the share of order_completed events with fulfillment_method = pickup. This spec changes no tracking, so its numbers stay the same. Please confirm it gives stores what they want before any further work."
+      }
+    ],
+    "privacy_notes": "No personal data is captured or needed: order_completed records only the order id, revenue, currency and fulfillment method. If we later add pickup-store detail, use an internal store code, not the store's street address. Never capture the name, email or phone of the customer or the person collecting the order. Pickup notifications and identity checks should stay in the order-management system and be joined by order_id if needed."
+  }
+}

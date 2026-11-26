@@ -1,0 +1,84 @@
+{
+  "spec": {
+    "summary": "Add one new event, back_in_stock_alert_requested. It fires when a shopper successfully signs up for a 'Notify me when back in stock' alert on an out-of-stock product. It is keyed by product_id (SKU), so sign-ups can be counted per product. The email address is never sent to analytics. No catalog event covers this action. newsletter_signed_up is also an email sign-up, but it is for marketing-list subscriptions. Adding a 'back_in_stock' value to its signup_location would inflate newsletter_signup_rate, so a separate event is the safer choice. No existing events need to change.",
+    "clarifying_questions": [
+      "Does submitting the back-in-stock form also subscribe the shopper to the marketing newsletter? If it does, should newsletter_signed_up fire as well? That would change newsletter_signup_rate.",
+      "Do you only need a count of sign-ups per product, or a rate (sign-ups per out-of-stock product view)? A rate would need an optional in_stock boolean added to product_viewed. That would be a separate extend.",
+      "Is the button on web product pages only (/p/*), or also in the iOS/Android app?"
+    ],
+    "events": [
+      {
+        "name": "back_in_stock_alert_requested",
+        "action": "new",
+        "trigger": "Fires once when the back-in-stock form on an out-of-stock product is submitted and the backend confirms the alert was created. It does not fire on button click, on opening the form, or on failed or invalid submissions. If the same shopper signs up again for the same product, fire it only if the backend creates a new alert.",
+        "description": "A shopper asked to be notified when an out-of-stock product is available again. Use it to count back-in-stock sign-ups per product.",
+        "properties": [
+          {
+            "name": "product_id",
+            "type": "string",
+            "required": true,
+            "description": "SKU of the out-of-stock product the alert is for. Same format as product_viewed.product_id.",
+            "allowed_values": []
+          },
+          {
+            "name": "category",
+            "type": "string",
+            "required": false,
+            "description": "Product category. Same values as product_viewed.category.",
+            "allowed_values": []
+          },
+          {
+            "name": "price",
+            "type": "number",
+            "required": false,
+            "description": "List price in USD at the time of sign-up. Same meaning as product_viewed.price.",
+            "allowed_values": []
+          }
+        ]
+      }
+    ],
+    "kpi_links": [
+      {
+        "kpi": "newsletter_signup_rate",
+        "reason": "This KPI should not change, because the back-in-stock sign-up is a separate event and must not fire newsletter_signed_up. Confirm this with growth. If the form also opts shoppers into the newsletter, or if engineering reuses newsletter_signed_up for it, newsletter sign-ups would rise and the KPI would move."
+      }
+    ],
+    "privacy_notes": "The form collects an email address, but no email, hashed email, name or other contact detail goes into the analytics event or any of its properties. The email goes only to the backend notification/ESP service that sends the alert. The event fires after the backend confirms the alert exists, carrying only product_id, category and price. Make sure the form submit does not put the email in the URL or a query string, because page_viewed.page_path and referrer would then capture it. Use a POST body, not GET parameters. If per-user analysis is needed later, rely on the standard anonymous/user id the SDK already attaches, not the email."
+  },
+  "errors": [],
+  "warnings": [],
+  "kpis_from_config": {},
+  "proof": {
+    "back_in_stock_alert_requested": {
+      "valid_samples": 6,
+      "broken_samples": 1,
+      "schema_accepts_valid": true,
+      "schema_catches_broken": 1,
+      "tests_pass_valid": true,
+      "tests_catch_broken": 1,
+      "ok": true
+    }
+  },
+  "score": {
+    "request_id": "REQ-014",
+    "must_ask": false,
+    "asked": false,
+    "ask_ok": true,
+    "kpi_required": [],
+    "kpi_agent": [
+      "newsletter_signup_rate"
+    ],
+    "kpi_checker_added": [],
+    "kpi_recall_agent": null,
+    "kpi_recall_with_checker": null,
+    "kpi_precision": 0.0,
+    "touch_ok": true,
+    "no_duplicate_ok": true,
+    "properties_ok": true,
+    "privacy_ok": true,
+    "checks_ok": true,
+    "pipeline_ok": true,
+    "ready": true,
+    "notes": []
+  }
+}

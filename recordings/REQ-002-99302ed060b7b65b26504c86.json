@@ -1,0 +1,54 @@
+{
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "usage": {
+    "input_tokens": 2278,
+    "output_tokens": 2218,
+    "cache_read_input_tokens": 1271,
+    "cache_creation_input_tokens": 0
+  },
+  "output": {
+    "summary": "Jon wants to compare add-to-cart from the wishlist page against add-to-cart from the PDP. The catalog already has product_added_to_cart, with a `source` property whose enum is pdp, search and recommendation. So we don't need a new event: we extend `source` with a new allowed value, 'wishlist'. Jon can then compare source = 'wishlist' against source = 'pdp'. If he wants adds per wishlist visit rather than raw counts, the existing page_viewed event on the wishlist path can serve as the denominator without changes.",
+    "clarifying_questions": [
+      "Does the wishlist page fire product_added_to_cart today, and if so, what `source` does it send (none, or 'pdp')? This decides whether add_to_cart_rate gains new events or only gets re-attributed, and how to read historical data.",
+      "If the wishlist has an 'Add all to cart' button, should it fire one product_added_to_cart per product (recommended, consistent with the catalog) or a single event?",
+      "Should add_to_cart_rate (owned by growth, scoped to /p/*) count wishlist adds, or be filtered to source = 'pdp'?"
+    ],
+    "events": [
+      {
+        "name": "product_added_to_cart",
+        "action": "extend",
+        "trigger": "Fires when a user adds an item to the cart from the wishlist page (web wishlist page and app wishlist screen) and the cart add succeeds. Use the same success condition as the existing PDP add. Send source = 'wishlist'. Fire one event per product added; `quantity` is the number of units added.",
+        "description": "Add 'wishlist' as an allowed value of the existing optional `source` property, so wishlist adds can be compared with PDP adds (source = 'pdp'). The type stays string and no other properties change. Older app versions won't send 'wishlist', so wishlist adds from them will show their old source value or none. Analysis should start from the release date of this change.",
+        "properties": [
+          {
+            "name": "source",
+            "type": "string",
+            "required": false,
+            "description": "Where the add happened. Adds the new value 'wishlist' for adds made from the wishlist page or screen. Existing values are unchanged.",
+            "allowed_values": [
+              "pdp",
+              "search",
+              "recommendation",
+              "wishlist"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "page_viewed",
+        "action": "reuse",
+        "trigger": "Existing behavior. Fires on wishlist page load with the wishlist page_path (e.g. /wishlist). No change needed.",
+        "description": "Optional denominator for rate comparisons: wishlist adds per wishlist page view versus PDP adds per PDP view. No schema change.",
+        "properties": []
+      }
+    ],
+    "kpi_links": [
+      {
+        "kpi": "add_to_cart_rate",
+        "reason": "This KPI is built on product_added_to_cart. If wishlist adds aren't tracked today, they will start firing; any wishlist add in a session that also has a product view could then be counted, raising the rate. If they are tracked today under another or missing source, the counts stay the same but the attribution shifts to 'wishlist'. Growth should confirm whether the KPI should filter to source = 'pdp' (it is scoped to /p/*)."
+      }
+    ],
+    "privacy_notes": "No personal data is needed. Send only product_id, quantity and source. Do not attach wishlist owner details (name, email), a shared-wishlist URL or slug, or any wishlist identifier derived from the user's email or name. If page_viewed is used for the wishlist page, make sure page_path and referrer carry only the path, with no user identifiers or share tokens in path segments or query strings; strip query parameters if shared wishlist links include them."
+  }
+}

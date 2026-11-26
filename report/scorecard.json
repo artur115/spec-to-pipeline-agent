@@ -1,0 +1,502 @@
+{
+  "summary": {
+    "requests": 20,
+    "ready_for_engineering": 18,
+    "ask_correct": 20,
+    "vague_requests": 3,
+    "kpi_recall_agent": 0.917,
+    "kpi_recall_with_checker": 0.917,
+    "kpi_precision": 0.786,
+    "reused_catalog_events": 17,
+    "properties_ok": 16,
+    "privacy_ok": 17,
+    "checks_ok": 17,
+    "pipeline_ok": 17,
+    "specs_scored": 17,
+    "usage": {
+      "model": "claude-opus-5-5",
+      "effort": "high",
+      "mode": "replay",
+      "input_tokens": 45599,
+      "output_tokens": 41929,
+      "cache_read_input_tokens": 25420,
+      "cache_creation_input_tokens": 0,
+      "calls": 20,
+      "cost_usd": 1.0311
+    }
+  },
+  "requests": [
+    {
+      "request_id": "REQ-001",
+      "must_ask": false,
+      "asked": false,
+      "ask_ok": true,
+      "kpi_required": [
+        "add_to_cart_rate",
+        "checkout_conversion"
+      ],
+      "kpi_agent": [
+        "add_to_cart_rate",
+        "checkout_conversion",
+        "return_rate",
+        "store_pickup_adoption"
+      ],
+      "kpi_checker_added": [],
+      "kpi_recall_agent": 1.0,
+      "kpi_recall_with_checker": 1.0,
+      "kpi_precision": 0.5,
+      "touch_ok": true,
+      "no_duplicate_ok": true,
+      "properties_ok": true,
+      "privacy_ok": true,
+      "checks_ok": true,
+      "pipeline_ok": true,
+      "ready": true,
+      "notes": []
+    },
+    {
+      "request_id": "REQ-002",
+      "must_ask": false,
+      "asked": false,
+      "ask_ok": true,
+      "kpi_required": [
+        "add_to_cart_rate"
+      ],
+      "kpi_agent": [
+        "add_to_cart_rate"
+      ],
+      "kpi_checker_added": [
+        "newsletter_signup_rate"
+      ],
+      "kpi_recall_agent": 1.0,
+      "kpi_recall_with_checker": 1.0,
+      "kpi_precision": 1.0,
+      "touch_ok": true,
+      "no_duplicate_ok": true,
+      "properties_ok": true,
+      "privacy_ok": true,
+      "checks_ok": true,
+      "pipeline_ok": true,
+      "ready": true,
+      "notes": []
+    },
+    {
+      "request_id": "REQ-003",
+      "must_ask": false,
+      "asked": false,
+      "ask_ok": true,
+      "kpi_required": [],
+      "kpi_agent": [],
+      "kpi_checker_added": [],
+      "kpi_recall_agent": null,
+      "kpi_recall_with_checker": null,
+      "kpi_precision": null,
+      "touch_ok": true,
+      "no_duplicate_ok": true,
+      "properties_ok": true,
+      "privacy_ok": true,
+      "checks_ok": true,
+      "pipeline_ok": true,
+      "ready": true,
+      "notes": []
+    },
+    {
+      "request_id": "REQ-004",
+      "must_ask": false,
+      "asked": false,
+      "ask_ok": true,
+      "kpi_required": [
+        "store_pickup_adoption"
+      ],
+      "kpi_agent": [
+        "checkout_conversion",
+        "return_rate",
+        "store_pickup_adoption"
+      ],
+      "kpi_checker_added": [],
+      "kpi_recall_agent": 1.0,
+      "kpi_recall_with_checker": 1.0,
+      "kpi_precision": 1.0,
+      "touch_ok": true,
+      "no_duplicate_ok": true,
+      "properties_ok": true,
+      "privacy_ok": true,
+      "checks_ok": true,
+      "pipeline_ok": true,
+      "ready": true,
+      "notes": []
+    },
+    {
+      "request_id": "REQ-005",
+      "must_ask": true,
+      "asked": true,
+      "ask_ok": true,
+      "kpi_required": [],
+      "kpi_agent": [],
+      "kpi_checker_added": [],
+      "kpi_recall_agent": null,
+      "kpi_recall_with_checker": null,
+      "kpi_precision": null,
+      "touch_ok": true,
+      "no_duplicate_ok": true,
+      "properties_ok": true,
+      "privacy_ok": true,
+      "checks_ok": true,
+      "pipeline_ok": true,
+      "ready": true,
+      "notes": []
+    },
+    {
+      "request_id": "REQ-006",
+      "must_ask": false,
+      "asked": false,
+      "ask_ok": true,
+      "kpi_required": [
+        "search_success_rate"
+      ],
+      "kpi_agent": [
+        "search_success_rate"
+      ],
+      "kpi_checker_added": [],
+      "kpi_recall_agent": 1.0,
+      "kpi_recall_with_checker": 1.0,
+      "kpi_precision": 1.0,
+      "touch_ok": true,
+      "no_duplicate_ok": true,
+      "properties_ok": true,
+      "privacy_ok": true,
+      "checks_ok": true,
+      "pipeline_ok": true,
+      "ready": true,
+      "notes": []
+    },
+    {
+      "request_id": "REQ-007",
+      "must_ask": false,
+      "asked": false,
+      "ask_ok": true,
+      "kpi_required": [
+        "newsletter_signup_rate"
+      ],
+      "kpi_agent": [
+        "newsletter_signup_rate"
+      ],
+      "kpi_checker_added": [],
+      "kpi_recall_agent": 1.0,
+      "kpi_recall_with_checker": 1.0,
+      "kpi_precision": 1.0,
+      "touch_ok": true,
+      "no_duplicate_ok": true,
+      "properties_ok": true,
+      "privacy_ok": true,
+      "checks_ok": true,
+      "pipeline_ok": true,
+      "ready": true,
+      "notes": []
+    },
+    {
+      "request_id": "REQ-008",
+      "must_ask": false,
+      "asked": false,
+      "ask_ok": true,
+      "kpi_required": [
+        "return_rate"
+      ],
+      "kpi_agent": [
+        "return_rate"
+      ],
+      "kpi_checker_added": [],
+      "kpi_recall_agent": 1.0,
+      "kpi_recall_with_checker": 1.0,
+      "kpi_precision": 1.0,
+      "touch_ok": true,
+      "no_duplicate_ok": true,
+      "properties_ok": true,
+      "privacy_ok": true,
+      "checks_ok": true,
+      "pipeline_ok": true,
+      "ready": true,
+      "notes": []
+    },
+    {
+      "request_id": "REQ-009",
+      "must_ask": false,
+      "asked": false,
+      "ask_ok": true,
+      "kpi_required": [],
+      "kpi_agent": [
+        "app_retention_d7"
+      ],
+      "kpi_checker_added": [],
+      "kpi_recall_agent": null,
+      "kpi_recall_with_checker": null,
+      "kpi_precision": 1.0,
+      "touch_ok": true,
+      "no_duplicate_ok": true,
+      "properties_ok": false,
+      "privacy_ok": true,
+      "checks_ok": true,
+      "pipeline_ok": true,
+      "ready": false,
+      "notes": [
+        "missing a property like campaign_id"
+      ]
+    },
+    {
+      "request_id": "REQ-010",
+      "must_ask": true,
+      "asked": true,
+      "ask_ok": true,
+      "kpi_required": [],
+      "kpi_agent": [],
+      "kpi_checker_added": [],
+      "kpi_recall_agent": null,
+      "kpi_recall_with_checker": null,
+      "kpi_precision": null,
+      "touch_ok": true,
+      "no_duplicate_ok": true,
+      "properties_ok": true,
+      "privacy_ok": true,
+      "checks_ok": true,
+      "pipeline_ok": true,
+      "ready": true,
+      "notes": []
+    },
+    {
+      "request_id": "REQ-011",
+      "must_ask": false,
+      "asked": false,
+      "ask_ok": true,
+      "kpi_required": [
+        "checkout_conversion"
+      ],
+      "kpi_agent": [
+        "checkout_conversion",
+        "return_rate",
+        "store_pickup_adoption"
+      ],
+      "kpi_checker_added": [],
+      "kpi_recall_agent": 1.0,
+      "kpi_recall_with_checker": 1.0,
+      "kpi_precision": 1.0,
+      "touch_ok": true,
+      "no_duplicate_ok": true,
+      "properties_ok": true,
+      "privacy_ok": true,
+      "checks_ok": true,
+      "pipeline_ok": true,
+      "ready": true,
+      "notes": []
+    },
+    {
+      "request_id": "REQ-012",
+      "must_ask": false,
+      "asked": false,
+      "ask_ok": true,
+      "kpi_required": [
+        "return_rate"
+      ],
+      "kpi_agent": [
+        "add_to_cart_rate",
+        "newsletter_signup_rate",
+        "return_rate"
+      ],
+      "kpi_checker_added": [],
+      "kpi_recall_agent": 1.0,
+      "kpi_recall_with_checker": 1.0,
+      "kpi_precision": 0.6666666666666666,
+      "touch_ok": true,
+      "no_duplicate_ok": true,
+      "properties_ok": true,
+      "privacy_ok": true,
+      "checks_ok": true,
+      "pipeline_ok": true,
+      "ready": true,
+      "notes": []
+    },
+    {
+      "request_id": "REQ-013",
+      "must_ask": false,
+      "asked": false,
+      "ask_ok": true,
+      "kpi_required": [
+        "trail_guide_engagement"
+      ],
+      "kpi_agent": [
+        "trail_guide_engagement"
+      ],
+      "kpi_checker_added": [],
+      "kpi_recall_agent": 1.0,
+      "kpi_recall_with_checker": 1.0,
+      "kpi_precision": 1.0,
+      "touch_ok": true,
+      "no_duplicate_ok": true,
+      "properties_ok": true,
+      "privacy_ok": true,
+      "checks_ok": true,
+      "pipeline_ok": true,
+      "ready": true,
+      "notes": []
+    },
+    {
+      "request_id": "REQ-014",
+      "must_ask": false,
+      "asked": false,
+      "ask_ok": true,
+      "kpi_required": [],
+      "kpi_agent": [
+        "newsletter_signup_rate"
+      ],
+      "kpi_checker_added": [],
+      "kpi_recall_agent": null,
+      "kpi_recall_with_checker": null,
+      "kpi_precision": 0.0,
+      "touch_ok": true,
+      "no_duplicate_ok": true,
+      "properties_ok": true,
+      "privacy_ok": true,
+      "checks_ok": true,
+      "pipeline_ok": true,
+      "ready": true,
+      "notes": []
+    },
+    {
+      "request_id": "REQ-015",
+      "must_ask": false,
+      "asked": false,
+      "ask_ok": true,
+      "kpi_required": [
+        "checkout_conversion"
+      ],
+      "kpi_agent": [],
+      "kpi_checker_added": [],
+      "kpi_recall_agent": 0.0,
+      "kpi_recall_with_checker": 0.0,
+      "kpi_precision": null,
+      "touch_ok": true,
+      "no_duplicate_ok": true,
+      "properties_ok": true,
+      "privacy_ok": true,
+      "checks_ok": true,
+      "pipeline_ok": true,
+      "ready": false,
+      "notes": []
+    },
+    {
+      "request_id": "REQ-016",
+      "must_ask": false,
+      "asked": false,
+      "ask_ok": true,
+      "kpi_required": [
+        "store_pickup_adoption"
+      ],
+      "kpi_agent": [
+        "store_pickup_adoption"
+      ],
+      "kpi_checker_added": [
+        "checkout_conversion",
+        "return_rate"
+      ],
+      "kpi_recall_agent": 1.0,
+      "kpi_recall_with_checker": 1.0,
+      "kpi_precision": 1.0,
+      "touch_ok": true,
+      "no_duplicate_ok": true,
+      "properties_ok": true,
+      "privacy_ok": true,
+      "checks_ok": true,
+      "pipeline_ok": true,
+      "ready": true,
+      "notes": []
+    },
+    {
+      "request_id": "REQ-017",
+      "must_ask": false,
+      "asked": false,
+      "ask_ok": true,
+      "kpi_required": [],
+      "kpi_agent": [],
+      "kpi_checker_added": [],
+      "kpi_recall_agent": null,
+      "kpi_recall_with_checker": null,
+      "kpi_precision": null,
+      "touch_ok": true,
+      "no_duplicate_ok": true,
+      "properties_ok": true,
+      "privacy_ok": true,
+      "checks_ok": true,
+      "pipeline_ok": true,
+      "ready": true,
+      "notes": []
+    },
+    {
+      "request_id": "REQ-018",
+      "must_ask": true,
+      "asked": true,
+      "ask_ok": true,
+      "kpi_required": [],
+      "kpi_agent": [],
+      "kpi_checker_added": [],
+      "kpi_recall_agent": null,
+      "kpi_recall_with_checker": null,
+      "kpi_precision": null,
+      "touch_ok": true,
+      "no_duplicate_ok": true,
+      "properties_ok": true,
+      "privacy_ok": true,
+      "checks_ok": true,
+      "pipeline_ok": true,
+      "ready": true,
+      "notes": []
+    },
+    {
+      "request_id": "REQ-019",
+      "must_ask": false,
+      "asked": false,
+      "ask_ok": true,
+      "kpi_required": [],
+      "kpi_agent": [
+        "add_to_cart_rate",
+        "newsletter_signup_rate"
+      ],
+      "kpi_checker_added": [],
+      "kpi_recall_agent": null,
+      "kpi_recall_with_checker": null,
+      "kpi_precision": 0.5,
+      "touch_ok": true,
+      "no_duplicate_ok": true,
+      "properties_ok": true,
+      "privacy_ok": true,
+      "checks_ok": true,
+      "pipeline_ok": true,
+      "ready": true,
+      "notes": []
+    },
+    {
+      "request_id": "REQ-020",
+      "must_ask": false,
+      "asked": false,
+      "ask_ok": true,
+      "kpi_required": [
+        "checkout_conversion"
+      ],
+      "kpi_agent": [
+        "checkout_conversion",
+        "return_rate",
+        "store_pickup_adoption"
+      ],
+      "kpi_checker_added": [],
+      "kpi_recall_agent": 1.0,
+      "kpi_recall_with_checker": 1.0,
+      "kpi_precision": 0.3333333333333333,
+      "touch_ok": true,
+      "no_duplicate_ok": true,
+      "properties_ok": true,
+      "privacy_ok": true,
+      "checks_ok": true,
+      "pipeline_ok": true,
+      "ready": true,
+      "notes": []
+    }
+  ]
+}

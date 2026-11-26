@@ -1,0 +1,93 @@
+{
+  "spec": {
+    "summary": "REQ-019 needs one new event, product_comparison_viewed. It fires when the side-by-side compare table is shown with 2-4 products. It records the SKUs being compared so analysts can count compares and build co-comparison pairs and sets. No existing event covers comparing products. product_viewed should not be reused: it would inflate add_to_cart_rate. Whether add-to-cart can happen from the compare table is still open. If it can, product_added_to_cart will need a new source value, which would be an extend; that is not specced until Jon confirms.",
+    "clarifying_questions": [
+      "Can users add a product to cart directly from the compare table? If so, I'll extend product_added_to_cart.source with a new allowed value 'compare'. Today those adds would fail validation or be mislabeled as 'pdp'.",
+      "Where can users start a compare: PLP/category grid, search results, PDP, or all of these? If you want compares broken down by entry point, I'll add an optional entry_point property with those values.",
+      "Is the compare table its own page (for example /compare) that fires page_viewed, or an overlay on the current page?"
+    ],
+    "events": [
+      {
+        "name": "product_comparison_viewed",
+        "action": "new",
+        "trigger": "Fires once when the side-by-side compare table finishes rendering with 2-4 products. Fires again only if the user changes the set of products while on the table (adds, removes or swaps a product). Does not fire on re-renders, scrolls, resizes or toggling table rows. Must not also fire product_viewed for the products in the table.",
+        "description": "User viewed a side-by-side comparison of 2-4 products. Used to count compares and to analyse which products are compared together.",
+        "properties": [
+          {
+            "name": "product_ids",
+            "type": "array",
+            "required": true,
+            "description": "SKUs in the comparison, as an array of strings with 2-4 items. Order them in the column order shown, left to right. Analysts should sort the array before grouping into co-compared sets.",
+            "allowed_values": []
+          },
+          {
+            "name": "product_count",
+            "type": "integer",
+            "required": true,
+            "description": "Number of products in the comparison; must equal the length of product_ids.",
+            "allowed_values": [
+              "2",
+              "3",
+              "4"
+            ]
+          },
+          {
+            "name": "category",
+            "type": "string",
+            "required": false,
+            "description": "Product category, only when all compared products share one category; omit if they are mixed. Use the same values as product_viewed.category.",
+            "allowed_values": []
+          }
+        ]
+      }
+    ],
+    "kpi_links": [
+      {
+        "kpi": "add_to_cart_rate",
+        "reason": "The spec adds a new event and does not touch product_viewed or product_added_to_cart, so the KPI should not move. Two cases would change it. First, if engineering fires product_viewed for products shown in the compare table, the views denominator inflates. Second, if users can add to cart from the compare table, those adds are untagged or mis-sourced in product_added_to_cart until a 'compare' source value is added. Growth should confirm the KPI stays scoped to /p/* views."
+      },
+      {
+        "kpi": "newsletter_signup_rate",
+        "reason": "If the compare table is its own page that fires page_viewed, it can add page views and sessions to this KPI's denominator. That effect is small and only matters if compare becomes a common landing or entry page."
+      }
+    ],
+    "privacy_notes": "No personal data is needed. Send only SKUs, the product count and the category. Do not put user identifiers, emails or names in the event payload; rely on the standard anonymous or session identifiers your analytics SDK already attaches. If the compare page has a shareable URL, make sure page_path or referrer cannot carry user-entered text or account info in query strings."
+  },
+  "errors": [],
+  "warnings": [],
+  "kpis_from_config": {},
+  "proof": {
+    "product_comparison_viewed": {
+      "valid_samples": 6,
+      "broken_samples": 3,
+      "schema_accepts_valid": true,
+      "schema_catches_broken": 3,
+      "tests_pass_valid": true,
+      "tests_catch_broken": 3,
+      "ok": true
+    }
+  },
+  "score": {
+    "request_id": "REQ-019",
+    "must_ask": false,
+    "asked": false,
+    "ask_ok": true,
+    "kpi_required": [],
+    "kpi_agent": [
+      "add_to_cart_rate",
+      "newsletter_signup_rate"
+    ],
+    "kpi_checker_added": [],
+    "kpi_recall_agent": null,
+    "kpi_recall_with_checker": null,
+    "kpi_precision": 0.5,
+    "touch_ok": true,
+    "no_duplicate_ok": true,
+    "properties_ok": true,
+    "privacy_ok": true,
+    "checks_ok": true,
+    "pipeline_ok": true,
+    "ready": true,
+    "notes": []
+  }
+}

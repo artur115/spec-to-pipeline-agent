@@ -1,0 +1,208 @@
+{
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "usage": {
+    "input_tokens": 2285,
+    "output_tokens": 3507,
+    "cache_read_input_tokens": 1271,
+    "cache_creation_input_tokens": 0
+  },
+  "output": {
+    "summary": "Track search filter usage and whether filtered searches lead to result clicks. This builds on the existing search events and does not redefine searches. (1) A new event, search_filter_applied, fires each time a user changes a filter on the results page. It answers 'which filters do people use'. (2) search_performed and search_result_clicked are extended with optional filter-state properties and a client-generated search_id. A click can then be attributed to a filtered or unfiltered result set, and to the specific filters active at click time. Changing a filter must NOT fire another search_performed. If it did, the search_success_rate denominator would inflate. The filter change is captured only by search_filter_applied.",
+    "clarifying_questions": [
+      "Is the price range a set of preset buckets (e.g. 'under $50', '$50\u2013$100') or a free min/max slider? If buckets, I'd swap filter_price_min/max for an enum of bucket ids.",
+      "Can users select more than one category at once? The spec uses an array to cover both cases, but confirm so engineering can validate it.",
+      "Do you also need filter removals and 'clear all' tracked, or only filters being applied? This spec includes a filter_action of applied/removed/cleared; drop it if removals don't matter.",
+      "Are the filters live in the iOS/Android apps as well as web, or web only? Older app versions won't send the new optional properties, so filtered-vs-unfiltered comparisons should be limited to versions that do."
+    ],
+    "events": [
+      {
+        "name": "search_filter_applied",
+        "action": "new",
+        "trigger": "Fires once when the user changes a search filter on the search results page (category, price range, or in-stock toggle) and the updated result set has loaded. It fires on apply, remove, and clear-all. It does not fire on initial page load when filters are pre-set from the URL; that state is captured on search_performed instead.",
+        "description": "A user changed a filter on a search results page. It records which filter changed and the full filter state after the change. It must not trigger a search_performed event.",
+        "properties": [
+          {
+            "name": "search_id",
+            "type": "string",
+            "required": true,
+            "description": "Client-generated id of the current search, matching the search_id on the search_performed event for this query.",
+            "allowed_values": []
+          },
+          {
+            "name": "filter_type",
+            "type": "string",
+            "required": true,
+            "description": "Which filter the user changed. Use 'all' for a clear-all action.",
+            "allowed_values": [
+              "category",
+              "price_range",
+              "in_stock_only",
+              "all"
+            ]
+          },
+          {
+            "name": "filter_action",
+            "type": "string",
+            "required": true,
+            "description": "Whether the filter was set or changed (applied), unset (removed), or all filters were reset (cleared).",
+            "allowed_values": [
+              "applied",
+              "removed",
+              "cleared"
+            ]
+          },
+          {
+            "name": "filter_categories",
+            "type": "array",
+            "required": false,
+            "description": "Category filter values active after the change, as internal category slugs (array of strings). Omit or send empty when no category filter is set.",
+            "allowed_values": []
+          },
+          {
+            "name": "filter_price_min",
+            "type": "number",
+            "required": false,
+            "description": "Lower bound of the active price filter after the change, USD. Omit when not set.",
+            "allowed_values": []
+          },
+          {
+            "name": "filter_price_max",
+            "type": "number",
+            "required": false,
+            "description": "Upper bound of the active price filter after the change, USD. Omit when not set.",
+            "allowed_values": []
+          },
+          {
+            "name": "filter_in_stock_only",
+            "type": "boolean",
+            "required": false,
+            "description": "Whether the in-stock-only toggle is on after the change.",
+            "allowed_values": []
+          },
+          {
+            "name": "active_filter_count",
+            "type": "integer",
+            "required": true,
+            "description": "Number of filter types active after the change (0-3).",
+            "allowed_values": []
+          },
+          {
+            "name": "results_count",
+            "type": "integer",
+            "required": true,
+            "description": "Number of results shown after the filter change.",
+            "allowed_values": []
+          }
+        ]
+      },
+      {
+        "name": "search_performed",
+        "action": "extend",
+        "trigger": "Unchanged: fires when the user submits a search query. It must NOT fire again when only filters change.",
+        "description": "Adds a search_id for joining to filter and click events, plus the filter state at submit time. Filters can already be active when the search is submitted, e.g. persisted from a prior search or set via URL.",
+        "properties": [
+          {
+            "name": "search_id",
+            "type": "string",
+            "required": false,
+            "description": "Client-generated UUID created when the query is submitted. Reuse it on all filter and click events for this query until a new query is submitted.",
+            "allowed_values": []
+          },
+          {
+            "name": "is_filtered",
+            "type": "boolean",
+            "required": false,
+            "description": "True if any filter is active when the search is submitted.",
+            "allowed_values": []
+          },
+          {
+            "name": "filter_categories",
+            "type": "array",
+            "required": false,
+            "description": "Active category filter slugs at submit time (array of strings).",
+            "allowed_values": []
+          },
+          {
+            "name": "filter_price_min",
+            "type": "number",
+            "required": false,
+            "description": "Active price filter lower bound at submit time, USD.",
+            "allowed_values": []
+          },
+          {
+            "name": "filter_price_max",
+            "type": "number",
+            "required": false,
+            "description": "Active price filter upper bound at submit time, USD.",
+            "allowed_values": []
+          },
+          {
+            "name": "filter_in_stock_only",
+            "type": "boolean",
+            "required": false,
+            "description": "Whether the in-stock-only toggle is on at submit time.",
+            "allowed_values": []
+          }
+        ]
+      },
+      {
+        "name": "search_result_clicked",
+        "action": "extend",
+        "trigger": "Unchanged: fires when the user clicks a search result.",
+        "description": "Adds the search_id and the filter state at click time, so clicks can be attributed to filtered vs unfiltered result sets and to specific filters.",
+        "properties": [
+          {
+            "name": "search_id",
+            "type": "string",
+            "required": false,
+            "description": "search_id of the search this click belongs to.",
+            "allowed_values": []
+          },
+          {
+            "name": "is_filtered",
+            "type": "boolean",
+            "required": false,
+            "description": "True if any filter was active when the result was clicked.",
+            "allowed_values": []
+          },
+          {
+            "name": "filter_categories",
+            "type": "array",
+            "required": false,
+            "description": "Active category filter slugs at click time (array of strings).",
+            "allowed_values": []
+          },
+          {
+            "name": "filter_price_min",
+            "type": "number",
+            "required": false,
+            "description": "Active price filter lower bound at click time, USD.",
+            "allowed_values": []
+          },
+          {
+            "name": "filter_price_max",
+            "type": "number",
+            "required": false,
+            "description": "Active price filter upper bound at click time, USD.",
+            "allowed_values": []
+          },
+          {
+            "name": "filter_in_stock_only",
+            "type": "boolean",
+            "required": false,
+            "description": "Whether the in-stock-only toggle was on at click time.",
+            "allowed_values": []
+          }
+        ]
+      }
+    ],
+    "kpi_links": [
+      {
+        "kpi": "search_success_rate",
+        "reason": "Both of its events (search_performed, search_result_clicked) gain new properties. The definition is unchanged if filter changes do not fire search_performed. If engineering instead fires search_performed on each filter change, the denominator inflates and the rate drops. Growth may also want to segment the KPI by is_filtered once data accrues; filtered and unfiltered numbers will only be complete for app versions that send the new properties."
+      }
+    ],
+    "privacy_notes": "Filter values are product attributes, not personal data, so the new properties carry no PII. Send category filters as internal category slugs, not display text. The new search_filter_applied event deliberately uses search_id instead of repeating the free-text query. This avoids copying user-typed text, which could contain names, emails or phone numbers, into another event. The existing query property on search_performed and search_result_clicked has that risk today. Consider scrubbing email- and phone-like patterns client-side before sending. search_id must be a random UUID per query and must not be derived from any user or device identifier."
+  }
+}

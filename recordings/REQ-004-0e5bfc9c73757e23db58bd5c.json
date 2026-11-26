@@ -1,0 +1,53 @@
+{
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "usage": {
+    "input_tokens": 2291,
+    "output_tokens": 2853,
+    "cache_read_input_tokens": 1271,
+    "cache_creation_input_tokens": 0
+  },
+  "output": {
+    "summary": "Extend the existing order_completed event; no new event is needed. Curbside orders keep fulfillment_method = 'pickup', which leaves the field's type and allowed values unchanged. A new optional property, pickup_type ('in_store' | 'curbside'), records which kind of pickup the customer chose. This means retail ops' store_pickup_adoption KPI counts curbside orders automatically, with no change to its definition, and the two pickup kinds can still be reported separately. Implementation rules:\n- Send pickup_type only when fulfillment_method = 'pickup'. Omit it for 'ship'.\n- Older app versions will send 'pickup' with no pickup_type. Treat those as in_store, since curbside did not exist before this launch.\n- Deploy the schema update before the client change ships. order_completed has additionalProperties: false, so events carrying pickup_type would otherwise be rejected.\n\nAlternative if retail ops prefers it: add 'curbside' as a third value of fulfillment_method instead. That requires changing the store_pickup_adoption definition to pickup OR curbside, and any existing query that filters on 'pickup' would silently miss curbside orders. This spec avoids that risk.",
+    "clarifying_questions": [
+      "Should store_pickup_adoption count curbside and in-store pickup together (this spec's default, since curbside is sent as fulfillment_method = 'pickup'), or does retail ops want curbside as a separate number or breakdown in the KPI definition?",
+      "Does retail ops need pickup numbers by store? If so, we would add an optional store_id (internal store identifier) to order_completed; it is not included in this spec.",
+      "Is curbside launching on web checkout, the iOS/Android apps, or all of them? This determines which clients must send pickup_type and from which release."
+    ],
+    "events": [
+      {
+        "name": "order_completed",
+        "action": "extend",
+        "trigger": "Unchanged: fires once when an order is successfully placed (order confirmation). The new property is set from the fulfillment option the customer selected at checkout.",
+        "description": "Add optional pickup_type to distinguish curbside pickup from in-store pickup. fulfillment_method stays 'ship' | 'pickup' with no type or enum change. Curbside orders send fulfillment_method = 'pickup' and pickup_type = 'curbside'. In-store pickup orders send fulfillment_method = 'pickup' and pickup_type = 'in_store'. Omit pickup_type for 'ship'. Ship the schema update before the client change, because additionalProperties is false.",
+        "properties": [
+          {
+            "name": "pickup_type",
+            "type": "string",
+            "required": false,
+            "description": "Which pickup option the customer chose. Send only when fulfillment_method = 'pickup'; omit for 'ship'. Missing on older app versions, where 'pickup' means in-store.",
+            "allowed_values": [
+              "in_store",
+              "curbside"
+            ]
+          }
+        ]
+      }
+    ],
+    "kpi_links": [
+      {
+        "kpi": "store_pickup_adoption",
+        "reason": "Curbside orders are sent as fulfillment_method = 'pickup', so they join this KPI's numerator from launch and the pickup share will rise. That matches the request to include curbside in pickup numbers. If retail ops wants in-store only, the definition needs an added filter: pickup_type is 'in_store' or missing."
+      },
+      {
+        "kpi": "checkout_conversion",
+        "reason": "This KPI uses order_completed as its numerator. The intended counts don't change, but if clients send pickup_type before the schema is updated, those events fail validation (additionalProperties: false). Every pickup order, in-store and curbside, would then drop out of orders and push conversion down. The schema must be deployed first."
+      },
+      {
+        "kpi": "return_rate",
+        "reason": "This KPI uses order_completed as its denominator. The same deploy-order risk applies: rejected pickup orders would shrink completed orders and inflate the return rate. The KPI's definition and numbers are otherwise unaffected. Returns can now also be broken down by pickup_type."
+      }
+    ],
+    "privacy_notes": "Curbside flows usually collect personal data for arrival notifications, such as phone number, customer name, vehicle make, model or colour, licence plate, and sometimes location or ETA. None of these may be added to order_completed or any analytics event. pickup_type carries only the enum value. If a store breakdown is needed, use an internal store_id, never a store address or the customer's address. If arrival or handoff events are wanted later, key them on order_id only and keep contact and vehicle details in the operational system, not in analytics."
+  }
+}

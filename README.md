@@ -22,16 +22,32 @@ events shipped without being tied to a KPI, then found months later and fixed wi
 | | Agent (Claude) |
 |---|---:|
 | Requests | 20 (3 deliberately too vague to spec) |
-| Specs ready for engineering, all checks passing | *not run yet* |
-| Vague requests answered with questions, not a guessed spec | *not run yet* |
-| Required KPI links found by the agent | *not run yet* |
-| …by the agent plus the config check | *not run yet* |
-| Reused the catalog instead of re-creating events | *not run yet* |
-| Captured personal data | *not run yet* (must be 0) |
+| Specs ready for engineering, all checks passing | **15 / 17** |
+| Vague requests answered with questions, not a guessed spec | **3 / 3** |
+| Required KPI links found by the agent | 12 / 13 |
+| …by the agent plus the config check | 12 / 13 |
+| Reused the catalog instead of re-creating events | 17 / 17 |
+| Captured personal data | **0** (must be 0) |
 
-The column is filled in by the first recorded run (`make record`). Until then it stays empty
-rather than estimated. The labels it is scored against were written first:
-[`evals/labels.yml`](evals/labels.yml).
+Agent run: `claude-opus-5-5`, effort `high`, recorded 2026-11-26. 20 API calls, 45,599 input +
+41,929 output tokens (plus 25,420 cache-read tokens), **total cost $1.0311**. All 17 specs passed
+the deterministic checks and the pipeline proof. KPI precision was 0.786: some specs linked KPIs
+the labels don't list as affected. Scored against [`evals/labels.yml`](evals/labels.yml), which was
+written before the run. Per-request scores: [`report/scorecard.json`](report/scorecard.json).
+Specs and tickets: [`report/specs/`](report/specs/). CI replays the saved responses in
+`recordings/` without an API key.
+
+**Where the agent failed.** Two of the 17 real requests are not ready. REQ-015 (coupon codes at
+checkout): the agent linked no KPI and argued that `checkout_conversion` is unaffected because it
+only reads `checkout_started` and `order_completed`. The labels require that link, and the config
+check didn't add it either, so this is the one missed KPI. REQ-009 (push opens): the agent captured
+the campaign as `push_campaign_id`, which the labels don't accept as a campaign property (`campaign_id`
+or `campaign`). The intent is right, but the property name is not one engineering would expect. The
+config check added no required KPI the agent had missed, so on this set it didn't change recall. The
+first recording attempt crashed on REQ-006 in the pipeline proof, not in the agent: allowed values on
+an array property were applied to the whole array, not to each element. This was fixed (with a test)
+before the run above. The cost of the 6 calls in that crashed attempt was not recorded and is not
+included in the $1.0311. One run on 20 synthetic requests, so treat these as a demonstration, not a rate.
 
 What already runs without a model: the checks, the dbt generator and the pipeline proof,
 exercised in CI on a hand-written reference spec. Its rendered ticket is

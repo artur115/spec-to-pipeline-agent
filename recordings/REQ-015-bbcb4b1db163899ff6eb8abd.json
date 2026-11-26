@@ -1,0 +1,92 @@
+{
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "usage": {
+    "input_tokens": 2281,
+    "output_tokens": 2441,
+    "cache_read_input_tokens": 1271,
+    "cache_creation_input_tokens": 0
+  },
+  "output": {
+    "summary": "No catalog event covers coupon entry, so this spec adds one new event, coupon_code_submitted. It fires once each time a shopper submits a code at checkout and the promotion service returns a result. The event records whether the code was valid or rejected, the discount amount when valid, and a structured reason when rejected. To avoid capturing free text the shopper typed, rejected attempts carry no raw input. No existing event changes. No existing KPI's numbers change, because checkout_conversion and store_pickup_adoption read only checkout_started and order_completed, which are untouched. The new event can still be joined to checkout_started via cart_id to segment checkout_conversion by coupon use.",
+    "clarifying_questions": [
+      "Do you need the exact text of rejected codes (for example, to spot misspellings of a real code or leaked competitor codes)? The default spec sends only a rejection_reason for rejected attempts, because the coupon field is free text and shoppers sometimes type emails or other personal data into it.",
+      "Can a shopper stack more than one coupon on an order? If so, should discount_amount be the discount from this code alone (the current spec) or the cart's total discount after this code is applied?",
+      "Should coupons applied automatically (from a promo link, or by default) also fire this event, or only codes the shopper types and submits? The spec covers only manual submissions unless you say otherwise."
+    ],
+    "events": [
+      {
+        "name": "coupon_code_submitted",
+        "action": "new",
+        "trigger": "Fires once each time the shopper submits a coupon code at checkout (Apply button or Enter) and the promotion/validation service returns a valid or rejected result. Send it from the server-side validation response so status and discount_amount are authoritative. Do not fire on keystrokes or field blur. Fire again on every resubmission, including resubmitting the same code. Do not fire for network or validation errors where no result came back.",
+        "description": "A coupon code was entered at checkout and validated as either valid (discount applied) or rejected.",
+        "properties": [
+          {
+            "name": "cart_id",
+            "type": "string",
+            "required": true,
+            "description": "Cart id. Same value as checkout_started.cart_id so attempts can be joined to the checkout and, through it, to the order.",
+            "allowed_values": []
+          },
+          {
+            "name": "status",
+            "type": "string",
+            "required": true,
+            "description": "Result of validation.",
+            "allowed_values": [
+              "valid",
+              "rejected"
+            ]
+          },
+          {
+            "name": "coupon_code",
+            "type": "string",
+            "required": false,
+            "description": "Canonical code as stored in the promotion system, normalized to uppercase and trimmed. Send only when status = valid. Never send the raw text the shopper typed for rejected attempts.",
+            "allowed_values": []
+          },
+          {
+            "name": "promotion_id",
+            "type": "string",
+            "required": false,
+            "description": "Internal id of the promotion or campaign the code belongs to. Send only when status = valid. Lets single-use or unique codes be grouped by campaign without exposing per-customer codes.",
+            "allowed_values": []
+          },
+          {
+            "name": "discount_amount",
+            "type": "number",
+            "required": false,
+            "description": "Discount applied by this code, USD, as a positive number. Send only when status = valid. Omit it rather than sending 0 for rejected attempts.",
+            "allowed_values": []
+          },
+          {
+            "name": "cart_value",
+            "type": "number",
+            "required": false,
+            "description": "Cart value before this code's discount, USD. Same definition as checkout_started.cart_value. Lets analysts compute discount rate and see minimum-spend rejections.",
+            "allowed_values": []
+          },
+          {
+            "name": "rejection_reason",
+            "type": "string",
+            "required": false,
+            "description": "Why the code was rejected. Send only when status = rejected. Map the promotion service's error codes to these values, and use 'other' for anything unmapped.",
+            "allowed_values": [
+              "not_found",
+              "expired",
+              "not_started",
+              "minimum_not_met",
+              "ineligible_items",
+              "usage_limit_reached",
+              "not_combinable",
+              "account_ineligible",
+              "other"
+            ]
+          }
+        ]
+      }
+    ],
+    "kpi_links": [],
+    "privacy_notes": "The coupon field is free text, and shoppers sometimes paste emails, phone numbers, names or gift-card numbers into it. Never forward the raw input. For rejected attempts send only status and rejection_reason. For valid attempts send the canonical code from the promotion system, not what was typed. Some codes are unique per customer, such as referral codes containing a name or single-use codes emailed to one person. For these, send promotion_id and omit coupon_code, or send a campaign-level code instead. Do not add email, customer name, or any user-entered text as properties. User identity should come only from the standard anonymous/user id handled by the tracking SDK."
+  }
+}

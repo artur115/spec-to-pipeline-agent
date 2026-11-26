@@ -1,0 +1,61 @@
+{
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "usage": {
+    "input_tokens": 2281,
+    "output_tokens": 1724,
+    "cache_read_input_tokens": 1271,
+    "cache_creation_input_tokens": 0
+  },
+  "output": {
+    "summary": "Add one new event, newsletter_popup_shown, to count how often the exit-intent popup is displayed. Extend newsletter_signed_up with a new signup_location value, exit_intent_popup, so sign-ups from the popup can be counted. Popup sign-up rate is sign-ups with signup_location = exit_intent_popup divided by newsletter_popup_shown. No personal data is captured.",
+    "clarifying_questions": [
+      "Is this an A/B test with a control group that never sees the popup, or does every eligible visitor get it? If there are variants, we should add a variant property to both events so you can compare sign-ups and the overall newsletter_signup_rate across groups.",
+      "Do you also want to know when people close the popup without signing up? If so, we would add a newsletter_popup_dismissed event; without it, non-sign-ups only show up as 'shown but no sign-up'.",
+      "Should the popup's sign-ups count toward the existing newsletter_signup_rate KPI, or be reported separately? The answer decides whether that KPI's definition changes."
+    ],
+    "events": [
+      {
+        "name": "newsletter_popup_shown",
+        "action": "new",
+        "trigger": "Fires once each time the exit-intent newsletter popup is actually rendered and visible to the user. It does not fire when the exit-intent trigger is suppressed by frequency capping, or when the user has already subscribed.",
+        "description": "Exposure event for the exit-intent newsletter popup. It is the denominator for the popup's sign-up rate.",
+        "properties": [
+          {
+            "name": "page_path",
+            "type": "string",
+            "required": true,
+            "description": "URL path (no query string or fragment) of the page the popup appeared on.",
+            "allowed_values": []
+          }
+        ]
+      },
+      {
+        "name": "newsletter_signed_up",
+        "action": "extend",
+        "trigger": "Unchanged: fires on a successful newsletter sign-up confirmation. When the sign-up comes from the exit-intent popup form, send signup_location = exit_intent_popup.",
+        "description": "Add a new allowed value to the existing signup_location enum so popup sign-ups can be told apart from footer and newsletter-page sign-ups. Existing values (footer, newsletter_page) and the property's type and required status are unchanged.",
+        "properties": [
+          {
+            "name": "signup_location",
+            "type": "string",
+            "required": true,
+            "description": "Where the form was. Existing property; adds the value exit_intent_popup. Older app versions keep sending footer or newsletter_page, which is fine because those versions don't show the popup.",
+            "allowed_values": [
+              "footer",
+              "newsletter_page",
+              "exit_intent_popup"
+            ]
+          }
+        ]
+      }
+    ],
+    "kpi_links": [
+      {
+        "kpi": "newsletter_signup_rate",
+        "reason": "The KPI counts newsletter_signed_up per session. Popup sign-ups will raise the numerator, but some may be people who would otherwise have signed up via the footer or the newsletter page. The KPI's pages list (footer, /newsletter) also doesn't include the popup, which appears on any page. Growth needs to decide whether exit_intent_popup sign-ups are included in the KPI or filtered out. Any query that filters on the enumerated signup_location values must be updated."
+      }
+    ],
+    "privacy_notes": "Do not send the email address, or anything derived from it such as a hash, as an event property. The form posts the email directly to the email provider, and the analytics event records only that a sign-up happened and where. Send page_path as the path only, with the query string and fragment stripped, because URLs can carry emails or tokens (for example from email campaign links). Do not log the typed form value on failed submissions."
+  }
+}
