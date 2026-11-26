@@ -78,7 +78,7 @@ They range from clear (REQ-020: "track each step of the new 3-step checkout") to
 ```bash
 pip install -r requirements.txt
 make demo       # tests, reference spec through a real dbt build, agent replay
-make record     # real agent run on all 20 requests; needs ANTHROPIC_API_KEY
+make record     # real agent run on all 20 requests; needs PROOF_ANTHROPIC_API_KEY
 ```
 
 The default is `claude-opus-5-5` at high effort (`SPEC_MODEL` / `SPEC_EFFORT` to change).
