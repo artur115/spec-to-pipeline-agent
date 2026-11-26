@@ -1,0 +1,89 @@
+{
+  "spec": {
+    "summary": "REQ-017 asks to log when users switch the site language between English, Spanish and French. No catalog event covers this, so the spec adds one new event, language_changed. It fires once per user-initiated switch and records the previous language, the new language and the platform. No existing KPI reads this event, so no KPI numbers change because of this spec. The questions below cover whether to break out where the switcher was used, whether automatic locale detection should count, and whether localized URL paths could affect page-based KPIs.",
+    "clarifying_questions": [
+      "Where can users switch language (e.g. header, footer, account settings, a first-visit prompt)? If you want to compare these, we will add a switcher_location property with a fixed list of values.",
+      "Should automatic language selection (from browser or device locale on first visit or open) also be logged, or only manual switches? This spec covers manual switches only.",
+      "Does switching language change URL paths (e.g. /es/p/* instead of /p/*) or reload the page? If so, page_viewed paths may stop matching KPI page filters (add_to_cart_rate on /p/*, trail_guide_engagement on /guides/*, checkout pages) and page_viewed counts may rise. We should confirm with the KPI owners before launch."
+    ],
+    "events": [
+      {
+        "name": "language_changed",
+        "action": "new",
+        "trigger": "Fires once when the user picks a language different from the current one in the language switcher, and the new language has been applied. Does not fire if the user re-selects the current language. Does not fire for automatic locale detection.",
+        "description": "A user manually switched the site or app display language.",
+        "properties": [
+          {
+            "name": "from_language",
+            "type": "string",
+            "required": true,
+            "description": "Language active before the switch, as an ISO 639-1 code.",
+            "allowed_values": [
+              "en",
+              "es",
+              "fr"
+            ]
+          },
+          {
+            "name": "to_language",
+            "type": "string",
+            "required": true,
+            "description": "Language selected by the user, as an ISO 639-1 code.",
+            "allowed_values": [
+              "en",
+              "es",
+              "fr"
+            ]
+          },
+          {
+            "name": "platform",
+            "type": "string",
+            "required": true,
+            "description": "Surface where the switch happened.",
+            "allowed_values": [
+              "web",
+              "ios",
+              "android"
+            ]
+          }
+        ]
+      }
+    ],
+    "kpi_links": [],
+    "privacy_notes": "The event records only language codes and platform; it holds no personal data. Send fixed ISO 639-1 codes from the enum, not free-text locale strings or full browser Accept-Language headers, which can carry extra identifying detail. Do not attach email, name, phone or address. Rely on the existing anonymous or user ID already sent with every event. If a language preference is saved to the user's account, keep that in the product database, not in analytics properties."
+  },
+  "errors": [],
+  "warnings": [],
+  "kpis_from_config": {},
+  "proof": {
+    "language_changed": {
+      "valid_samples": 6,
+      "broken_samples": 6,
+      "schema_accepts_valid": true,
+      "schema_catches_broken": 6,
+      "tests_pass_valid": true,
+      "tests_catch_broken": 6,
+      "ok": true
+    }
+  },
+  "score": {
+    "request_id": "REQ-017",
+    "must_ask": false,
+    "asked": false,
+    "ask_ok": true,
+    "kpi_required": [],
+    "kpi_agent": [],
+    "kpi_checker_added": [],
+    "kpi_recall_agent": null,
+    "kpi_recall_with_checker": null,
+    "kpi_precision": null,
+    "touch_ok": true,
+    "no_duplicate_ok": true,
+    "properties_ok": true,
+    "privacy_ok": true,
+    "checks_ok": true,
+    "pipeline_ok": true,
+    "ready": true,
+    "notes": []
+  }
+}

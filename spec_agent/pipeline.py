@@ -65,6 +65,9 @@ def write_dbt(schemas: dict[str, dict], out: Path) -> list[Path]:
 # --- sample events ---------------------------------------------------------
 
 def _value(name: str, p: dict, i: int):
+    if p["type"] == "array" and "enum" in p.get("items", {}):
+        vals = p["items"]["enum"]
+        return [vals[i % len(vals)], vals[(i + 1) % len(vals)]]
     if "enum" in p:
         return p["enum"][i % len(p["enum"])]
     return {"string": f"{name}_{i}", "number": 10.5 + i, "integer": i + 1, "boolean": i % 2 == 0,
@@ -83,7 +86,11 @@ def samples(schema: dict, n: int = 6) -> tuple[list[dict], list[tuple[str, dict]
         row.pop(k)
         broken.append((f"missing required {k}", row))
     for k, p in props.items():
-        if "enum" in p:
+        if p["type"] == "array" and "enum" in p.get("items", {}):
+            row = {x: _value(x, props[x], 0) for x in props}
+            row[k] = ["not_an_allowed_value"]
+            broken.append((f"{k} element outside allowed values", row))
+        elif "enum" in p:
             row = {x: _value(x, props[x], 0) for x in props}
             row[k] = 999999 if p["type"] == "integer" else "not_an_allowed_value"
             broken.append((f"{k} outside allowed values", row))
@@ -96,7 +103,11 @@ def _failures(con, event: str, schema: dict) -> int:
     for name, p in schema["properties"].items():
         if name in schema.get("required", []):
             conds.append(f"{name} IS NULL")
-        if "enum" in p:
+        if p["type"] == "array" and "enum" in p.get("items", {}):
+            vals = ", ".join("'" + str(v).replace("'", "''") + "'" for v in p["items"]["enum"])
+            conds.append(f"({name} IS NOT NULL AND EXISTS (SELECT 1 FROM unnest(CAST({name} AS VARCHAR[])) t(v)"
+                         f" WHERE v NOT IN ({vals})))")
+        elif "enum" in p:
             vals = ", ".join(str(v) if p["type"] == "integer" else "'" + str(v).replace("'", "''") + "'"
                              for v in p["enum"])
             conds.append(f"({name} IS NOT NULL AND {name} NOT IN ({vals}))")

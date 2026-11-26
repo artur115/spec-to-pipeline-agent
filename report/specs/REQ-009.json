@@ -1,0 +1,84 @@
+{
+  "spec": {
+    "summary": "Extend the existing app_opened event rather than adding a new one. A push-notification open is an app open whose source is a push tap. Two optional properties are added: open_source, which says how the app was opened, and push_campaign_id, which carries the campaign identifier from the push payload. The existing platform property already covers iOS and Android. No new event is needed for app launches or foregrounds that come from a push tap. Taps on a push while the app is already in the foreground would not be captured; see the first clarifying question.",
+    "clarifying_questions": [
+      "Do you need to count taps on a push that arrive while the app is already open and in the foreground? These do not open the app, so they would not fire app_opened. Firing app_opened for them would inflate app_retention_d7. If you need them, we would add a separate push_notification_opened event for that case only.",
+      "Where should the campaign identifier come from? Is there a stable campaign ID field in the push payload from our push provider (e.g., Braze or OneSignal), set the same way on iOS and Android? Or should we use the campaign name, which risks free text?",
+      "Do you also want other open sources (e.g., deep link or email link) distinguished now? Or is direct vs. push_notification enough for this request?"
+    ],
+    "events": [
+      {
+        "name": "app_opened",
+        "action": "extend",
+        "trigger": "Unchanged: fires when the app is launched (cold start) or brought to the foreground, on iOS and Android. If that launch or foreground was caused by the user tapping a push notification, the client sets open_source = push_notification and push_campaign_id from the notification payload. Otherwise it sets open_source = direct. Do not fire an extra app_opened for push taps that happen while the app is already in the foreground.",
+        "description": "User opened the app. It is now annotated with whether the open came from a push notification and, if so, which campaign sent it.",
+        "properties": [
+          {
+            "name": "open_source",
+            "type": "string",
+            "required": false,
+            "description": "How the app was opened. Optional because older app versions won't send it; treat missing as unknown, not as direct.",
+            "allowed_values": [
+              "direct",
+              "push_notification"
+            ]
+          },
+          {
+            "name": "push_campaign_id",
+            "type": "string",
+            "required": false,
+            "description": "Campaign identifier read from the push notification payload. Send only when open_source = push_notification. Use the provider's stable campaign ID, not the notification title or body.",
+            "allowed_values": []
+          }
+        ]
+      }
+    ],
+    "kpi_links": [
+      {
+        "kpi": "app_retention_d7",
+        "reason": "This KPI is built on app_opened. The new properties alone don't change the counts. However, the push-open code path could change how many app_opened events fire: firing it on foreground push taps would add events, and fixing push launches that currently skip app_opened would also add events. Either would shift D7 retention. Confirm with mobile that the firing rules stay exactly the same."
+      }
+    ],
+    "privacy_notes": "Send only a campaign identifier (an ID or slug) from the push payload. Do not send the notification title, body or personalization fields, which can contain the user's name or order details. Do not send the device push token or any provider user ID. If the provider only exposes a campaign name, check that names never include customer data before using them as push_campaign_id."
+  },
+  "errors": [],
+  "warnings": [],
+  "kpis_from_config": {
+    "app_retention_d7": "built on app_opened, which this spec extends"
+  },
+  "proof": {
+    "app_opened": {
+      "valid_samples": 6,
+      "broken_samples": 3,
+      "schema_accepts_valid": true,
+      "schema_catches_broken": 3,
+      "tests_pass_valid": true,
+      "tests_catch_broken": 3,
+      "ok": true
+    }
+  },
+  "score": {
+    "request_id": "REQ-009",
+    "must_ask": false,
+    "asked": false,
+    "ask_ok": true,
+    "kpi_required": [],
+    "kpi_agent": [
+      "app_retention_d7"
+    ],
+    "kpi_checker_added": [],
+    "kpi_recall_agent": null,
+    "kpi_recall_with_checker": null,
+    "kpi_precision": 1.0,
+    "touch_ok": true,
+    "no_duplicate_ok": true,
+    "properties_ok": false,
+    "privacy_ok": true,
+    "checks_ok": true,
+    "pipeline_ok": true,
+    "ready": false,
+    "notes": [
+      "missing a property like campaign_id"
+    ]
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "usage": {
+    "input_tokens": 2289,
+    "output_tokens": 2454,
+    "cache_read_input_tokens": 1271,
+    "cache_creation_input_tokens": 0
+  },
+  "output": {
+    "summary": "Extend order_completed rather than adding a new purchase event. Gift card sales stay inside the existing revenue figure, and two new optional properties (gift_card_revenue, gift_card_count) let analysts report them separately. This also works for orders that mix gift cards with regular products. A new fulfillment_method value, 'digital', covers gift-card-only orders, which are neither shipped nor picked up. The field is required, so without a valid value these orders would fail validation or be mislabeled 'ship'. Regular revenue = revenue - gift_card_revenue. Gift card revenue = sum(gift_card_revenue). Gift card order count = orders where gift_card_count > 0.",
+    "clarifying_questions": [
+      "When a customer later pays for a regular order with a gift card, does order_completed.revenue include the gift-card-paid amount? If so, the money is counted twice: once at gift card sale and again at redemption. Finance needs to decide which point counts as revenue, and we may need a separate gift_card_redeemed_amount property.",
+      "Do gift card purchases go through the standard /checkout flow and fire checkout_started? If they use a separate flow, checkout_conversion will be inflated, because gift card orders would have no matching checkout_started.",
+      "Can a single order contain both gift cards and physical products? This spec supports mixed orders: fulfillment_method stays ship or pickup and gift_card_revenue holds the gift card portion. Please confirm that matches how checkout works."
+    ],
+    "events": [
+      {
+        "name": "order_completed",
+        "action": "extend",
+        "trigger": "Unchanged: fires once when an order is successfully placed, including orders that contain only gift cards or a mix of gift cards and regular products.",
+        "description": "Adds a gift card revenue breakdown and a 'digital' fulfillment value. revenue keeps meaning the total order revenue in USD, including gift cards, so total revenue reporting is unchanged in definition.",
+        "properties": [
+          {
+            "name": "fulfillment_method",
+            "type": "string",
+            "required": true,
+            "description": "How the order is fulfilled. Adds the value 'digital' for orders that contain only gift cards. Mixed orders keep ship or pickup based on their physical items. The type is unchanged and the field stays required as it is today.",
+            "allowed_values": [
+              "ship",
+              "pickup",
+              "digital"
+            ]
+          },
+          {
+            "name": "gift_card_revenue",
+            "type": "number",
+            "required": false,
+            "description": "Portion of revenue, in USD, that comes from gift card purchases (sum of gift card face values bought). Send 0 when the order has no gift cards. Optional because older app versions won't send it; treat missing as 0 or unknown.",
+            "allowed_values": []
+          },
+          {
+            "name": "gift_card_count",
+            "type": "integer",
+            "required": false,
+            "description": "Number of gift cards purchased in the order. Send 0 when there are none. Optional because older app versions won't send it.",
+            "allowed_values": []
+          }
+        ]
+      }
+    ],
+    "kpi_links": [
+      {
+        "kpi": "checkout_conversion",
+        "reason": "Gift card orders add to the order_completed numerator. If gift card purchases skip checkout_started, the ratio is inflated. If they use the normal checkout, conversion changes with the gift card mix. Decide whether to include or exclude gift card orders, using fulfillment_method or gift_card_count."
+      },
+      {
+        "kpi": "store_pickup_adoption",
+        "reason": "Gift-card-only orders arrive with fulfillment_method = 'digital' and increase the total-orders denominator, which lowers pickup share. Decide whether the denominator should exclude 'digital' orders."
+      },
+      {
+        "kpi": "return_rate",
+        "reason": "Gift-card-only orders join the completed-orders denominator but are probably not returnable through return_requested, so the return rate drops. Consider excluding fulfillment_method = 'digital' orders."
+      }
+    ],
+    "privacy_notes": "Gift card flows usually collect recipient name, recipient email, sender name and a personal message. Do not send any of these in events. Do not send the gift card code, PIN or balance-lookup token either, since these work like payment credentials. Record only amounts (gift_card_revenue), counts (gift_card_count) and order_id. Analytics can join to the order system by order_id if more detail is needed. If amount-level breakdowns are needed later, use the face-value amount or a gift card SKU (e.g. the denomination), never a per-card identifier."
+  }
+}

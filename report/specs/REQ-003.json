@@ -1,0 +1,122 @@
+{
+  "spec": {
+    "summary": "Wishlist v1 has no matching event in the catalog, so this spec adds two new events: wishlist_item_added and wishlist_item_removed. Both are keyed on product_id (SKU), the same as product_viewed and product_added_to_cart, so saves can be joined to product data. Usage ('how many people') comes from distinct users firing wishlist_item_added. 'Which products' comes from counting by product_id and category, net of removals. Only new events are added and no existing event or property changes, so no existing KPI's numbers change. If the wishlist page later adds a 'move to cart' button, that would extend product_added_to_cart and affect add_to_cart_rate (see questions).",
+    "clarifying_questions": [
+      "Can users add to cart directly from the wishlist page in v1? If so, product_added_to_cart needs a new optional source value 'wishlist'. That would affect add_to_cart_rate (owner: growth), because those adds have no preceding product_viewed on /p/*.",
+      "Where can users tap save in v1: only the product page, or also search results and recommendation carousels? This fixes the allowed values for source.",
+      "Should adoption be reported against signed-in users only (the eligible base), or against all users?"
+    ],
+    "events": [
+      {
+        "name": "wishlist_item_added",
+        "action": "new",
+        "trigger": "Fires once when the server confirms a product was saved to the signed-in user's wishlist. Do not fire on the tap itself, on failure, or if the product was already in the wishlist. If a signed-out user taps save and is sent to sign in, fire only after the save completes after sign-in.",
+        "description": "A signed-in user saved a product to their wishlist.",
+        "properties": [
+          {
+            "name": "product_id",
+            "type": "string",
+            "required": true,
+            "description": "SKU of the saved product. Same format as product_viewed.product_id.",
+            "allowed_values": []
+          },
+          {
+            "name": "category",
+            "type": "string",
+            "required": false,
+            "description": "Product category. Same values as product_viewed.category.",
+            "allowed_values": []
+          },
+          {
+            "name": "source",
+            "type": "string",
+            "required": false,
+            "description": "Where the save happened. Mirrors product_added_to_cart.source.",
+            "allowed_values": [
+              "pdp",
+              "search",
+              "recommendation"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "wishlist_item_removed",
+        "action": "new",
+        "trigger": "Fires once when the server confirms a product was removed from the signed-in user's wishlist. Do not fire on failure or if the product was not in the wishlist. Do not fire when an item leaves the wishlist automatically, for example because the product was discontinued.",
+        "description": "A signed-in user removed a product from their wishlist.",
+        "properties": [
+          {
+            "name": "product_id",
+            "type": "string",
+            "required": true,
+            "description": "SKU of the removed product. Same format as product_viewed.product_id.",
+            "allowed_values": []
+          },
+          {
+            "name": "category",
+            "type": "string",
+            "required": false,
+            "description": "Product category. Same values as product_viewed.category.",
+            "allowed_values": []
+          },
+          {
+            "name": "source",
+            "type": "string",
+            "required": false,
+            "description": "Where the removal happened: the product page (unsaving) or the wishlist page.",
+            "allowed_values": [
+              "pdp",
+              "wishlist_page"
+            ]
+          }
+        ]
+      }
+    ],
+    "kpi_links": [],
+    "privacy_notes": "Do not put email, name, phone or address in event properties. Identify the user only through the existing pseudonymous analytics user id set by the SDK at sign-in. Product SKU and category are not personal data. If wishlists later support names, notes or sharing, do not send free-text names or notes, or recipient details, in these events."
+  },
+  "errors": [],
+  "warnings": [],
+  "kpis_from_config": {},
+  "proof": {
+    "wishlist_item_added": {
+      "valid_samples": 6,
+      "broken_samples": 2,
+      "schema_accepts_valid": true,
+      "schema_catches_broken": 2,
+      "tests_pass_valid": true,
+      "tests_catch_broken": 2,
+      "ok": true
+    },
+    "wishlist_item_removed": {
+      "valid_samples": 6,
+      "broken_samples": 2,
+      "schema_accepts_valid": true,
+      "schema_catches_broken": 2,
+      "tests_pass_valid": true,
+      "tests_catch_broken": 2,
+      "ok": true
+    }
+  },
+  "score": {
+    "request_id": "REQ-003",
+    "must_ask": false,
+    "asked": false,
+    "ask_ok": true,
+    "kpi_required": [],
+    "kpi_agent": [],
+    "kpi_checker_added": [],
+    "kpi_recall_agent": null,
+    "kpi_recall_with_checker": null,
+    "kpi_precision": null,
+    "touch_ok": true,
+    "no_duplicate_ok": true,
+    "properties_ok": true,
+    "privacy_ok": true,
+    "checks_ok": true,
+    "pipeline_ok": true,
+    "ready": true,
+    "notes": []
+  }
+}

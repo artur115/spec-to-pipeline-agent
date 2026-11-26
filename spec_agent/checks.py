@@ -34,7 +34,9 @@ def _prop_schema(p: dict) -> dict:
     s = {"type": JSON_TYPES[p["type"]], "description": p["description"]}
     if p["type"] == "array":
         s["items"] = {"type": "string"}
-    if p["allowed_values"]:
+    if p["allowed_values"] and p["type"] == "array":
+        s["items"]["enum"] = p["allowed_values"]   # allowed values apply to each element
+    elif p["allowed_values"]:
         vals = p["allowed_values"]
         if p["type"] == "integer" and all(v.lstrip("-").isdigit() for v in vals):
             s["enum"] = [int(v) for v in vals]

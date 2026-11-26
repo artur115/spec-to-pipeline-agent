@@ -1,0 +1,196 @@
+{
+  "spec": {
+    "summary": "Track the three steps of the new checkout (shipping, payment, review) with two new events: checkout_step_viewed when a step is shown, and checkout_step_completed when the shopper gets past it. Both carry cart_id, so they join to the existing checkout_started and order_completed events and give a funnel: checkout_started \u2192 shipping \u2192 payment \u2192 review \u2192 order_completed. checkout_started and order_completed stay as they are. No properties are added, changed or retyped, so the checkout_conversion definition (orders / checkouts started) is untouched. The new checkout must still fire checkout_started exactly once when the shopper enters checkout, before the shipping step. It must fire order_completed exactly once, on the order confirmation, never on the review step.",
+    "clarifying_questions": [
+      "Will the new 3-step checkout run alongside the old one (A/B test or gradual rollout)? If so, should we add an optional checkout_version property to checkout_started and order_completed, so checkout_conversion can be split old vs new without changing its definition?",
+      "Is store pickup chosen on the shipping step? If not, which step is it on? The spec assumes the shipping step and records fulfillment_method on checkout_step_completed for that step.",
+      "Do you also need the reason people fail to advance a step (validation error, payment declined)? If yes, we'll spec a separate error event rather than overloading these two."
+    ],
+    "events": [
+      {
+        "name": "checkout_started",
+        "action": "reuse",
+        "trigger": "Unchanged: fires once when the shopper enters /checkout, before the shipping step renders. The new checkout must keep exactly this firing point and must not fire it again on step changes, back navigation or page reloads.",
+        "description": "Existing checkout entry event. It is the checkout_conversion denominator and the start of the step funnel. No schema changes.",
+        "properties": []
+      },
+      {
+        "name": "checkout_step_viewed",
+        "action": "new",
+        "trigger": "Fires each time a checkout step (shipping, payment or review) is rendered and visible to the shopper. This includes returning to a step via Back or an Edit link. It does not fire again on re-renders within the same visit to that step.",
+        "description": "A checkout step was shown. Count unique cart_id per step for drop-off between steps. Repeat views of the same step on one cart show back-and-forth.",
+        "properties": [
+          {
+            "name": "cart_id",
+            "type": "string",
+            "required": true,
+            "description": "Cart id; same value as checkout_started.cart_id for this checkout. Join key for the funnel.",
+            "allowed_values": []
+          },
+          {
+            "name": "step",
+            "type": "string",
+            "required": true,
+            "description": "Which checkout step was shown.",
+            "allowed_values": [
+              "shipping",
+              "payment",
+              "review"
+            ]
+          },
+          {
+            "name": "step_number",
+            "type": "integer",
+            "required": true,
+            "description": "1-based position of the step in the flow (shipping=1, payment=2, review=3). Lets funnels sort steps without hardcoding names.",
+            "allowed_values": [
+              "1",
+              "2",
+              "3"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "checkout_step_completed",
+        "action": "new",
+        "trigger": "Fires when the shopper successfully moves past a step: validation passed and the app advances. For shipping and payment, this is moving to the next step. For review, it is the Place order submission being accepted for processing, before the confirmation page. It does not fire on failed validation or when going Back.",
+        "description": "A checkout step was finished. The gap between step viewed and step completed is drop-off within that step. The gap between review completed and order_completed shows orders lost after submission (e.g. payment declines).",
+        "properties": [
+          {
+            "name": "cart_id",
+            "type": "string",
+            "required": true,
+            "description": "Cart id; same value as checkout_started.cart_id for this checkout.",
+            "allowed_values": []
+          },
+          {
+            "name": "step",
+            "type": "string",
+            "required": true,
+            "description": "Which checkout step was completed.",
+            "allowed_values": [
+              "shipping",
+              "payment",
+              "review"
+            ]
+          },
+          {
+            "name": "step_number",
+            "type": "integer",
+            "required": true,
+            "description": "1-based position of the step (shipping=1, payment=2, review=3).",
+            "allowed_values": [
+              "1",
+              "2",
+              "3"
+            ]
+          },
+          {
+            "name": "fulfillment_method",
+            "type": "string",
+            "required": false,
+            "description": "Delivery option chosen. Send only when step = shipping. Uses the same values as order_completed.fulfillment_method.",
+            "allowed_values": [
+              "ship",
+              "pickup"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "order_completed",
+        "action": "reuse",
+        "trigger": "Unchanged: fires once when the order is confirmed (order confirmation shown / order created). It must not fire on the review step or on Place order click, and must not fire again if the confirmation page is reloaded.",
+        "description": "Existing order event. It is the end of the step funnel and the checkout_conversion numerator. The new checkout must keep sending fulfillment_method. No schema changes.",
+        "properties": []
+      }
+    ],
+    "kpi_links": [
+      {
+        "kpi": "checkout_conversion",
+        "reason": "Its definition and events are not changed, but the new checkout re-implements where checkout_started and order_completed fire. If checkout_started moves (e.g. fires per step or on reload, or only after shipping) or order_completed fires on the review step, the daily ratio shifts. finance-analytics should confirm the firing points before and after launch and compare old vs new flow."
+      },
+      {
+        "kpi": "store_pickup_adoption",
+        "reason": "Computed from order_completed.fulfillment_method. If the new checkout moves the ship/pickup choice or fails to pass fulfillment_method into order_completed, the pickup share changes. Duplicate order_completed events would also change it."
+      },
+      {
+        "kpi": "return_rate",
+        "reason": "Uses order_completed as the denominator. Any change in how often the new checkout fires order_completed (duplicates on reload, missed fires) changes the return rate."
+      }
+    ],
+    "privacy_notes": "The shipping and payment steps collect name, email, phone, address and card details. None of these may be sent on the step events. Send only cart_id, step, step_number and the fulfillment_method enum. Do not attach form field values, address strings, postcodes or card BIN/last4. Do not use page URLs that contain query parameters with personal data. If the new checkout puts personal data in the URL, strip it before any page_viewed fires on /checkout. Use cart_id as the join key, never email or phone. If payment method type is wanted later, add it as a fixed enum (e.g. card, paypal), never as card or account details."
+  },
+  "errors": [],
+  "warnings": [],
+  "kpis_from_config": {
+    "checkout_conversion": "built on checkout_started, which this spec reuses",
+    "return_rate": "built on order_completed, which this spec reuses",
+    "store_pickup_adoption": "built on order_completed, which this spec reuses"
+  },
+  "proof": {
+    "checkout_started": {
+      "valid_samples": 6,
+      "broken_samples": 1,
+      "schema_accepts_valid": true,
+      "schema_catches_broken": 1,
+      "tests_pass_valid": true,
+      "tests_catch_broken": 1,
+      "ok": true
+    },
+    "checkout_step_viewed": {
+      "valid_samples": 6,
+      "broken_samples": 5,
+      "schema_accepts_valid": true,
+      "schema_catches_broken": 5,
+      "tests_pass_valid": true,
+      "tests_catch_broken": 5,
+      "ok": true
+    },
+    "checkout_step_completed": {
+      "valid_samples": 6,
+      "broken_samples": 6,
+      "schema_accepts_valid": true,
+      "schema_catches_broken": 6,
+      "tests_pass_valid": true,
+      "tests_catch_broken": 6,
+      "ok": true
+    },
+    "order_completed": {
+      "valid_samples": 6,
+      "broken_samples": 6,
+      "schema_accepts_valid": true,
+      "schema_catches_broken": 6,
+      "tests_pass_valid": true,
+      "tests_catch_broken": 6,
+      "ok": true
+    }
+  },
+  "score": {
+    "request_id": "REQ-020",
+    "must_ask": false,
+    "asked": false,
+    "ask_ok": true,
+    "kpi_required": [
+      "checkout_conversion"
+    ],
+    "kpi_agent": [
+      "checkout_conversion",
+      "return_rate",
+      "store_pickup_adoption"
+    ],
+    "kpi_checker_added": [],
+    "kpi_recall_agent": 1.0,
+    "kpi_recall_with_checker": 1.0,
+    "kpi_precision": 0.3333333333333333,
+    "touch_ok": true,
+    "no_duplicate_ok": true,
+    "properties_ok": true,
+    "privacy_ok": true,
+    "checks_ok": true,
+    "pipeline_ok": true,
+    "ready": true,
+    "notes": []
+  }
+}

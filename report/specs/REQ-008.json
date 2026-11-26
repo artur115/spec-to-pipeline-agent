@@ -1,0 +1,80 @@
+{
+  "spec": {
+    "summary": "Extend the existing return_requested event with an optional return_reason property. Its allowed values match the five dropdown options: too_small, too_big, damaged, not_as_described and changed_mind. No new event is needed, because return_requested already fires per order_id + product_id. That means a reason can be attached to each returned item, and Ops can report return reasons by SKU, by category (via product_id) and over time. The property is optional in the schema because older app versions won't send it, even though the dropdown is required in the UI. The event's trigger point must not change.",
+    "clarifying_questions": [
+      "Is the reason chosen once per return request or separately for each item? return_requested fires once per product_id, so if one reason covers a multi-item return, engineering should copy that reason onto each item's event.",
+      "Will the dropdown ever include an 'Other' option or a free-text comment box? If so, add only an 'other' enum value and do not send the free text to analytics.",
+      "Does the new dropdown ship on web and the iOS/Android apps at the same time? If not, Ops reporting will show null reasons from platforms that haven't shipped yet, and these should be shown as 'unknown' rather than dropped."
+    ],
+    "events": [
+      {
+        "name": "return_requested",
+        "action": "extend",
+        "trigger": "Unchanged: fires once per returned item when the customer submits a return request in the returns flow (/returns). The selected dropdown value is sent with the event. The firing point must not move, for example to a separate reason-selection step.",
+        "description": "A customer requested a return for one item on an order. Extended to include the reason selected in the new returns dropdown.",
+        "properties": [
+          {
+            "name": "return_reason",
+            "type": "string",
+            "required": false,
+            "description": "Reason the customer selected in the returns dropdown, sent as a fixed enum key rather than the display label. Optional because older app versions and returns created before launch won't have it. Reporting should treat a missing value as 'unknown'.",
+            "allowed_values": [
+              "too_small",
+              "too_big",
+              "damaged",
+              "not_as_described",
+              "changed_mind"
+            ]
+          }
+        ]
+      }
+    ],
+    "kpi_links": [
+      {
+        "kpi": "return_rate",
+        "reason": "return_rate counts return_requested events against order_completed. Adding an optional property doesn't change the event count, provided the trigger stays the same. However, making the reason a required field adds friction to the returns flow and could lower submitted returns, which would move this KPI. The same happens if the event is accidentally moved or double-fired during the change. ops-analytics should confirm the trigger is unchanged and watch for a step change in return_rate after launch."
+      }
+    ],
+    "privacy_notes": "return_reason is a closed enum, so it carries no personal data. Do not add a free-text comment or 'please explain' field to this event, because customers often write names, addresses or phone numbers in such fields. If a comment box is added later, keep the text in the returns system only and, at most, send a boolean such as has_comment. Do not add the customer's email, name, shipping address or RMA/label details to the event. order_id and product_id are enough to join to operational systems if needed."
+  },
+  "errors": [],
+  "warnings": [],
+  "kpis_from_config": {
+    "return_rate": "built on return_requested, which this spec extends"
+  },
+  "proof": {
+    "return_requested": {
+      "valid_samples": 6,
+      "broken_samples": 3,
+      "schema_accepts_valid": true,
+      "schema_catches_broken": 3,
+      "tests_pass_valid": true,
+      "tests_catch_broken": 3,
+      "ok": true
+    }
+  },
+  "score": {
+    "request_id": "REQ-008",
+    "must_ask": false,
+    "asked": false,
+    "ask_ok": true,
+    "kpi_required": [
+      "return_rate"
+    ],
+    "kpi_agent": [
+      "return_rate"
+    ],
+    "kpi_checker_added": [],
+    "kpi_recall_agent": 1.0,
+    "kpi_recall_with_checker": 1.0,
+    "kpi_precision": 1.0,
+    "touch_ok": true,
+    "no_duplicate_ok": true,
+    "properties_ok": true,
+    "privacy_ok": true,
+    "checks_ok": true,
+    "pipeline_ok": true,
+    "ready": true,
+    "notes": []
+  }
+}
