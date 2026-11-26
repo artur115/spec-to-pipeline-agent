@@ -1,0 +1,208 @@
+version: 3
+owner: data-platform
+events:
+  page_viewed:
+    $schema: http://json-schema.org/draft-07/schema#
+    title: page_viewed
+    type: object
+    properties:
+      page_path:
+        type: string
+        description: URL path
+      referrer:
+        type: string
+        description: Referring URL
+    required:
+    - page_path
+    additionalProperties: false
+  product_viewed:
+    $schema: http://json-schema.org/draft-07/schema#
+    title: product_viewed
+    type: object
+    properties:
+      product_id:
+        type: string
+        description: SKU
+      category:
+        type: string
+        description: Product category
+      price:
+        type: number
+        description: List price, USD
+    required:
+    - product_id
+    additionalProperties: false
+  product_added_to_cart:
+    $schema: http://json-schema.org/draft-07/schema#
+    title: product_added_to_cart
+    type: object
+    properties:
+      product_id:
+        type: string
+        description: SKU
+      quantity:
+        type: integer
+        description: Units added
+      source:
+        type: string
+        description: Where the add happened
+        enum:
+        - pdp
+        - search
+        - recommendation
+    required:
+    - product_id
+    - quantity
+    additionalProperties: false
+  checkout_started:
+    $schema: http://json-schema.org/draft-07/schema#
+    title: checkout_started
+    type: object
+    properties:
+      cart_id:
+        type: string
+        description: Cart id
+      cart_value:
+        type: number
+        description: Cart value, USD
+    required:
+    - cart_id
+    additionalProperties: false
+  order_completed:
+    $schema: http://json-schema.org/draft-07/schema#
+    title: order_completed
+    type: object
+    properties:
+      order_id:
+        type: string
+        description: Order id
+      revenue:
+        type: number
+        description: Order revenue, USD
+      currency:
+        type: string
+        description: ISO currency
+        enum:
+        - USD
+      fulfillment_method:
+        type: string
+        description: How the order is fulfilled
+        enum:
+        - ship
+        - pickup
+    required:
+    - order_id
+    - revenue
+    - currency
+    - fulfillment_method
+    additionalProperties: false
+  return_requested:
+    $schema: http://json-schema.org/draft-07/schema#
+    title: return_requested
+    type: object
+    properties:
+      order_id:
+        type: string
+        description: Order id
+      product_id:
+        type: string
+        description: SKU
+    required:
+    - order_id
+    - product_id
+    additionalProperties: false
+  guide_viewed:
+    $schema: http://json-schema.org/draft-07/schema#
+    title: guide_viewed
+    type: object
+    properties:
+      guide_id:
+        type: string
+        description: Trail guide id
+    required:
+    - guide_id
+    additionalProperties: false
+  guide_scrolled:
+    $schema: http://json-schema.org/draft-07/schema#
+    title: guide_scrolled
+    type: object
+    properties:
+      guide_id:
+        type: string
+        description: Trail guide id
+      percent:
+        type: integer
+        description: Scroll depth
+        enum:
+        - 25
+        - 50
+        - 75
+        - 100
+    required:
+    - guide_id
+    - percent
+    additionalProperties: false
+  newsletter_signed_up:
+    $schema: http://json-schema.org/draft-07/schema#
+    title: newsletter_signed_up
+    type: object
+    properties:
+      signup_location:
+        type: string
+        description: Where the form was
+        enum:
+        - footer
+        - newsletter_page
+    required:
+    - signup_location
+    additionalProperties: false
+  search_performed:
+    $schema: http://json-schema.org/draft-07/schema#
+    title: search_performed
+    type: object
+    properties:
+      query:
+        type: string
+        description: Search text
+      results_count:
+        type: integer
+        description: Results shown
+    required:
+    - query
+    - results_count
+    additionalProperties: false
+  search_result_clicked:
+    $schema: http://json-schema.org/draft-07/schema#
+    title: search_result_clicked
+    type: object
+    properties:
+      query:
+        type: string
+        description: Search text
+      position:
+        type: integer
+        description: 1-based rank
+      product_id:
+        type: string
+        description: SKU
+    required:
+    - query
+    - position
+    additionalProperties: false
+  app_opened:
+    $schema: http://json-schema.org/draft-07/schema#
+    title: app_opened
+    type: object
+    properties:
+      app_version:
+        type: string
+        description: App version
+      platform:
+        type: string
+        description: OS
+        enum:
+        - ios
+        - android
+    required:
+    - platform
+    additionalProperties: false

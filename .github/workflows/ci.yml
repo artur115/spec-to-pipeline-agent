@@ -1,0 +1,22 @@
+name: spec checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Unit tests (checks, pipeline proof, scoring, replay)
+        run: python -m pytest -q
+      - name: Reference spec through a real dbt build
+        run: python scripts/dbt_example.py examples/REQ-020.reference.json
+      - name: Agent, replayed from recorded responses (no API key in CI)
+        run: python -m spec_agent.evaluate --mode replay

@@ -1,0 +1,8 @@
+kpi: add_to_cart_rate
+owner: growth
+definition: Product views that lead to an add-to-cart in the same session
+events:
+- product_viewed
+- product_added_to_cart
+pages:
+- /p/*

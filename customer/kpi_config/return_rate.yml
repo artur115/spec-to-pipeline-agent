@@ -1,0 +1,8 @@
+kpi: return_rate
+owner: ops-analytics
+definition: Returned orders / completed orders, 60-day window
+events:
+- order_completed
+- return_requested
+pages:
+- /returns

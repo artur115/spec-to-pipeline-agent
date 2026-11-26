@@ -1,0 +1,8 @@
+kpi: trail_guide_engagement
+owner: content
+definition: Share of guide views scrolled past 75%
+events:
+- guide_viewed
+- guide_scrolled
+pages:
+- /guides/*

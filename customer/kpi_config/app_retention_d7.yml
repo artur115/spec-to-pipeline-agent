@@ -1,0 +1,7 @@
+kpi: app_retention_d7
+owner: mobile
+definition: Users opening the app 7 days after first open
+events:
+- app_opened
+pages:
+- app

@@ -1,0 +1,29 @@
+{
+  "_note": "Hand-written reference spec for REQ-020, used to test the checks and the dbt generator. Not agent output.",
+  "summary": "Track each step of the new 3-step checkout so drop-off per step is visible, without changing checkout_conversion.",
+  "clarifying_questions": [],
+  "events": [
+    {
+      "name": "checkout_step_viewed",
+      "action": "new",
+      "trigger": "Each time a checkout step renders, including going back to a step.",
+      "description": "A shopper saw a step of the 3-step checkout.",
+      "properties": [
+        {"name": "cart_id", "type": "string", "required": true, "description": "Same cart_id as checkout_started", "allowed_values": []},
+        {"name": "step", "type": "string", "required": true, "description": "Which step", "allowed_values": ["shipping", "payment", "review"]},
+        {"name": "step_number", "type": "integer", "required": true, "description": "1, 2 or 3", "allowed_values": ["1", "2", "3"]}
+      ]
+    },
+    {
+      "name": "checkout_started",
+      "action": "reuse",
+      "trigger": "Unchanged: fires once when the shopper enters checkout, before step 1.",
+      "description": "Kept as the denominator of checkout_conversion.",
+      "properties": []
+    }
+  ],
+  "kpi_links": [
+    {"kpi": "checkout_conversion", "reason": "Must keep checkout_started firing once per checkout, not once per step."}
+  ],
+  "privacy_notes": "No personal data; shipping address fields are not captured."
+}

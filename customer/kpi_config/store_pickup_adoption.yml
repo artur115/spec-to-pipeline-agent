@@ -1,0 +1,7 @@
+kpi: store_pickup_adoption
+owner: retail-ops
+definition: Share of orders with fulfillment_method = pickup
+events:
+- order_completed
+pages:
+- /checkout

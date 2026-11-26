@@ -1,0 +1,8 @@
+kpi: search_success_rate
+owner: growth
+definition: Searches with a result click
+events:
+- search_performed
+- search_result_clicked
+pages:
+- /search

@@ -1,0 +1,31 @@
+# What a good spec for each request must contain. Written before any agent run.
+#
+# must_ask            the request is too vague to spec; the right move is to ask the PM
+# allow_ask           asking is acceptable even though a spec is possible
+# required_kpis       existing KPIs the spec must flag for the PM to confirm
+# allowed_kpis        KPIs it may also flag without being wrong (precision counts against the union)
+# must_touch          catalog events that must be reused or extended rather than re-created
+# no_new_events       the request is already covered by the catalog
+# required_properties each entry is a list of acceptable names; one of them must appear
+# forbidden_properties  personal data the spec must not capture
+
+REQ-001: {must_ask: false, required_kpis: [checkout_conversion, add_to_cart_rate], allowed_kpis: [], must_touch: [], required_properties: []}
+REQ-002: {must_ask: false, required_kpis: [add_to_cart_rate], allowed_kpis: [], must_touch: [product_added_to_cart], required_properties: [[source]]}
+REQ-003: {must_ask: false, required_kpis: [], allowed_kpis: [add_to_cart_rate], must_touch: [], required_properties: [[product_id]]}
+REQ-004: {must_ask: false, required_kpis: [store_pickup_adoption], allowed_kpis: [checkout_conversion, return_rate], must_touch: [order_completed], required_properties: [[fulfillment_method]]}
+REQ-005: {must_ask: true, required_kpis: [], allowed_kpis: [trail_guide_engagement], must_touch: [], required_properties: []}
+REQ-006: {must_ask: false, required_kpis: [search_success_rate], allowed_kpis: [], must_touch: [], required_properties: []}
+REQ-007: {must_ask: false, required_kpis: [newsletter_signup_rate], allowed_kpis: [], must_touch: [newsletter_signed_up], required_properties: [[signup_location]]}
+REQ-008: {must_ask: false, required_kpis: [return_rate], allowed_kpis: [], must_touch: [return_requested], required_properties: [[reason, return_reason]]}
+REQ-009: {must_ask: false, required_kpis: [], allowed_kpis: [app_retention_d7], must_touch: [], required_properties: [[campaign_id, campaign]]}
+REQ-010: {must_ask: true, required_kpis: [], allowed_kpis: [], must_touch: [], required_properties: []}
+REQ-011: {must_ask: false, required_kpis: [checkout_conversion], allowed_kpis: [return_rate, store_pickup_adoption], must_touch: [order_completed], required_properties: []}
+REQ-012: {must_ask: false, required_kpis: [return_rate], allowed_kpis: [add_to_cart_rate], must_touch: [], required_properties: [[product_id]]}
+REQ-013: {must_ask: false, required_kpis: [trail_guide_engagement], allowed_kpis: [], must_touch: [], required_properties: [[guide_id]]}
+REQ-014: {must_ask: false, required_kpis: [], allowed_kpis: [add_to_cart_rate], must_touch: [], required_properties: [[product_id]], forbidden_properties: [email, email_address]}
+REQ-015: {must_ask: false, required_kpis: [checkout_conversion], allowed_kpis: [], must_touch: [], required_properties: [[valid, is_valid, code_valid, status, result]]}
+REQ-016: {must_ask: false, allow_ask: true, no_new_events: true, required_kpis: [store_pickup_adoption], allowed_kpis: [checkout_conversion, return_rate], must_touch: [order_completed], required_properties: []}
+REQ-017: {must_ask: false, required_kpis: [], allowed_kpis: [], must_touch: [], required_properties: [[language, locale, new_language, to_language]]}
+REQ-018: {must_ask: true, required_kpis: [], allowed_kpis: [newsletter_signup_rate, add_to_cart_rate], must_touch: [], required_properties: []}
+REQ-019: {must_ask: false, required_kpis: [], allowed_kpis: [add_to_cart_rate], must_touch: [], required_properties: [[product_ids]]}
+REQ-020: {must_ask: false, required_kpis: [checkout_conversion], allowed_kpis: [], must_touch: [], required_properties: [[step, step_name, checkout_step]]}

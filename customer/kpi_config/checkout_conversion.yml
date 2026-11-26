@@ -1,0 +1,8 @@
+kpi: checkout_conversion
+owner: finance-analytics
+definition: Orders / checkouts started, daily
+events:
+- checkout_started
+- order_completed
+pages:
+- /checkout

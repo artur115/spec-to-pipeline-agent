@@ -1,0 +1,9 @@
+kpi: newsletter_signup_rate
+owner: growth
+definition: Sign-ups / sessions
+events:
+- newsletter_signed_up
+- page_viewed
+pages:
+- footer
+- /newsletter
